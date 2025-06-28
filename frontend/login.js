@@ -8,7 +8,7 @@ function processLogin(displayName, sessionToken) {
 }
 
 function login(username, password) {
-  console.log(`Running login: fetching ${server}/login`);
+  console.log(username, password);
   loginButton.disabled = true;
   fetch(`${server}/login`, {
     method: "POST",
@@ -31,8 +31,12 @@ function login(username, password) {
         window.alert("Username or Password incorrect!");
         loginButton.disabled = false;
       }
-    }) // waits for response then prints to log
-    .catch((err) => console.error(err));
+    })
+    .catch(
+      (err) => console.error(err),
+      alert("Internal Error Occured. Please try again later"),
+      (loginButton.disabled = false)
+    );
 }
 
 function isServerOnline() {

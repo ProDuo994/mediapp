@@ -32,6 +32,7 @@ body {
 .loginButton {
   text-align: right;
   background-color: palevioletred;
+  border: none;
 }
 
 .navigation {
@@ -220,11 +221,11 @@ body {
 }
 
 .usrname {
-  background-color: blueviolet;
+  background-color: rgb(255, 255, 255);
 }
 
 .pswrd {
-  background-color: blueviolet;
+  background-color: rgb(255, 255, 255);
 }
 
 .friendbutton {
@@ -292,6 +293,12 @@ dialog {
 .messageButtons {
   background-color: aqua;
   border-radius: 30%;
+}
+
+.loginForm {
+  text-align: center;
+  padding-top: 100px;
+  border-color: black;
 }
 
 @media screen and (max-width: 600px) {

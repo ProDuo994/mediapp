@@ -14,14 +14,34 @@
     <noscript>
       <h1>Please Enable Javascript</h1>
     </noscript>
-    <h1>MEDIAPP</h1>
+    <h1 style="text-align: center">MEDIAPP</h1>
     <br />
-    <form id="loginForm">
+    <form id="loginForm" class="loginForm">
       <h2 class="loginTitle">Login</h2>
-      <input type="text" name="Username" id="usrname" class="usrname" />
-      <input type="password" name="Password" id="pswrd" class="pswrd" />
+      <input
+        type="text"
+        name="Username"
+        id="usrname"
+        class="usrname"
+        autocomplete="username"
+        placeholder="Username"
+      />
+      <br />
+      <input
+        type="password"
+        name="Password"
+        id="pswrd"
+        class="pswrd"
+        autocomplete="current-password"
+        placeholder="Password"
+      />
+      <br />
       <input type="submit" id="loginBtn" class="loginBtn" value="Login" />
-      <button id="signupBtn">Sign Up</button>
+      <button id="signupBtn" class="loginBtn">Sign Up</button>
+      <br />
+      <label>
+        <input type="checkbox" checked="checked" name="remember" /> Remember me
+      </label>
     </form>
   </body>
 </html>

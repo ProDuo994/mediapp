@@ -1,16 +1,9 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
-import fs, { accessSync, read } from "fs";
+import fs from "fs";
 import { Client, connect, Result, ResultIterator } from "ts-postgres";
 import bcrypt from "bcrypt";
-import {
-  Group,
-  Account,
-  Message,
-  Database,
-  Profile,
-  Folder,
-} from "./types/types";
+import { Group, Account, Message, Database, Profile } from "./types/types";
 const app = express();
 app.use(express.json());
 app.use(
@@ -121,24 +114,17 @@ app.post("/signup", async (req: Request, res: Response): Promise<any> => {
     password,
     userID: 2,
   };
-  if (USERSDATABASE === null) {
-    return res.status(404).send("Could not find database");
-  }
   await addNewAccountToDatabase("database/users.json", account);
   return res.status(200).send(account);
 });
 
 app.post("/login", async (req: Request, res: Response): Promise<any> => {
   let { usr, psw } = req.body;
-  /*let acc: Account | void = await findAccountInDatabase(
-    "database/users.json",
-    usr
-  );*/
   const result: ResultIterator<Account> = client.query<Account>(
     `SELECT * FROM users WHERE username='${usr}' AND password='${psw}'`
   );
-  console.log(await result);
   const acc = await result.one();
+  console.log(acc);
   if (acc === undefined) {
     return res.status(400).send("Could not find account");
   }
@@ -150,7 +136,7 @@ app.post("/login", async (req: Request, res: Response): Promise<any> => {
         " " +
         new Date().toLocaleTimeString()
     );
-    return res.send(acc.displayName as string).status(200);
+    return res.status(200).send(JSON.stringify(acc.displayName));
   } else {
     return res.status(401).send("Incorrect Username/Password");
   }
@@ -206,10 +192,6 @@ function getOwnerOfGroup(groupName: string): Profile | null {
     return null;
   }
   return owner;
-}
-
-function messageToString(messageObject: Message) {
-  return `${messageObject.sender}: ${messageObject.message}`;
 }
 
 app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
@@ -312,11 +294,6 @@ async function createChat(
       isPublic: false,
       id: 0,
     };
-    const serverFolder = createFolder(newChat.groupName, "backend/database");
-    await fs.promises.writeFile(
-      `backend/database/${newChat.groupName}/members.json`,
-      JSON.stringify(newChat.members)
-    );
     return newChat;
   }
 }
@@ -408,8 +385,7 @@ app.get("/server", async (req: Request, res: Response): Promise<any> => {
 });
 
 app.post("/test", (_req: Request, res: Response) => {
-  // Used to test if the server is running
-  return res.status(200).send("Server Is Running");
+  res.status(200).send("Server Is Running");
 });
 
 async function addNewAccountToDatabase(
@@ -427,31 +403,8 @@ async function addNewAccountToDatabase(
   await writeDatabase(database, databaseName);
 }
 
-async function findMemberInDatabase(
-  username: string,
-  databaseName: string
-): Promise<Profile | undefined> {
-  if (!username) {
-    console.error("Username not provided");
-    return undefined;
-  }
-  const database = await readDatabase(databaseName);
-  if (database == undefined || database.accounts === undefined) {
-    return undefined;
-  }
-  const account: Account | undefined = database.accounts[username];
-  let member: Profile | undefined = account
-    ? {
-        username,
-        displayName: username,
-        userID: account.userID,
-      }
-    : undefined;
-  return member;
-}
-
 app.get("/getChatMessages", async (req: Request, res: any) => {
-  let serverID = req.query["serverID"] as number;
+  let serverID = req.query["serverID"] as any;
   if (serverID == undefined) {
     return res.status(400).send("Must provide server ID");
   }
