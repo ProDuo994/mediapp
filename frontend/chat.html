@@ -12,6 +12,15 @@
     <noscript>
       <h1>Please enable Javascript on your computer</h1>
     </noscript>
+    <dialog id="serverSettingsDialog">
+      <div class="serverSettingsDialogForm">
+        <form>
+          <h1>Server Settings</h1>
+          <h5>Server Name: </h5>
+          <input type="text">
+        </form>
+      </div>
+    </dialog>
     <dialog id="newChannelDialog">
       <div class="newChannelDialogForm">
         <form id="newChannelDialogForm">
@@ -37,7 +46,7 @@
       <form>
         <h1>Settings</h1>
         <h4>Channel Name</h4> 
-        <input autocomplete="off" type="text" name="name" id="channelNameBox">
+        <input autocomplete="off" required type="text" name="name" id="channelNameBox">
         <h4>Channel Description</h4> 
         <input autocomplete="off" type="text" name="des" id="chanelDesBox">
         <br />
@@ -76,6 +85,10 @@
       <aside class="serverListContainer">
         <ul id="serverList">
           <h2>Servers</h2>
+          <li>Server 1</li>
+          <li>Server 2</li>
+          <br>
+          <button class="serverAdd" style="font-size: medium;"><b>+</b></button>
         </ul>
       </aside>
       <div class="channelList">
@@ -86,11 +99,12 @@
         <a href="#" id="channel2">Channel 2</a>
         <br />
         <br />
-        <button class="channelAdd" id="channelAdd">ADD</button>
+        <button class="channelAdd" id="channelAdd" style="font-size: medium;"><b>+</b></button>
       </div>
       <div class="mainArea" id="mainarea">
         <div class="channelHeader" id="channelHeader">
           <h2 id="channelHeaderText">Channel Name</h2>
+          <h4 style="font-weight: lighter; padding-right: 250px;" id="channelDesText"><i>Channel Description</i></h4>
           <button class="channelSettings" id="channelSettings">Settings</button>
         </div>
         <div class="channelMessages" id="channelMessages">

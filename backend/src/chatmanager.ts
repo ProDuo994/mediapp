@@ -16,7 +16,6 @@ const PORT: number = 3000;
 let activeChats: string[] = [];
 let SERVERDATABASE: Database;
 let USERSDATABASE: Database;
-
 let client: Client;
 
 (async () => {
@@ -136,7 +135,7 @@ app.post("/login", async (req: Request, res: Response): Promise<any> => {
         " " +
         new Date().toLocaleTimeString()
     );
-    return res.status(200).send(JSON.stringify(acc.displayName));
+    return res.status(200).send({ displayname: acc.displayName });
   } else {
     return res.status(401).send("Incorrect Username/Password");
   }

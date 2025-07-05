@@ -91,7 +91,7 @@ function getChatID(name) {
     },
   }).then((res) => {
     res.json().then((json) => {
-      let chatID = json.chatID;
+      let chatID = 1;
       return chatID;
     });
   });
@@ -228,6 +228,13 @@ const visibleCheckbox = document.getElementById("visibleCheckbox");
 const messageCheckbox = document.getElementById("messageCheckbox");
 const channelNameInput = document.getElementById("channelNameBox");
 const channelDesInput = document.getElementById("chanelDesBox");
+const serverNameHeader = document.getElementById("servername");
+const channelNameHeader = document.getElementById("channelHeaderText");
+const channel1Header = document.getElementById("channel1");
+const channelDesHeader = document.getElementById("channelDesText");
+const menuButton = document.getElementById("menuIcon");
+const serverSettingsGui = document.getElementById("serverSettingsDialog");
+
 let channelName = "Test Server";
 let channelDes = "Test Description";
 let visible = true;
@@ -240,12 +247,17 @@ function getOldServerSettings() {
   channelDesInput.value = channelDes;
 }
 
-function updateSettings() {
+function updateServerSettings() {}
+
+function updateChannelSettings() {
   channelName = channelNameInput.value;
   channelDes = channelDesInput.value;
   visible = visibleCheckbox.checked;
   canMessage = messageCheckbox.checked;
   updateSettingsEndpoint(channelName, channelDes, visible, canMessage);
+  channelNameHeader.innerText = channelName;
+  channel1Header.innerText = channelName;
+  channelDesHeader.innerText = channelDes;
 }
 
 channelSettingsButton.addEventListener("click", (event) => {
@@ -265,12 +277,16 @@ newChannelDialogForm.addEventListener("submit", (event) => {
 });
 channelSettingsGui.addEventListener("submit", (event) => {
   event.preventDefault();
-  updateSettings();
+  updateChannelSettings();
   channelSettingsGui.close();
 });
 channelSettingsClose.addEventListener("click", (event) => {
   event.preventDefault();
   channelSettingsGui.close();
+});
+menuButton.addEventListener("click", (event) => {
+  event.preventDefault();
+  serverSettingsGui.showModal();
 });
 
 messageBoxInput.addEventListener("keydown", (event) => {
@@ -285,8 +301,8 @@ messageBoxInput.addEventListener("keydown", (event) => {
 
 function loadServerData(serverID) {
   let database = "../backend/database.json";
-  let data = database.servers[serverID];
-  return data;
+  //let data = database.servers[serverID];
+  return 0;
 }
 
 function saveServerData(serverID) {
@@ -301,6 +317,10 @@ function addFriend(userID) {
 
 window.onload = async () => {
   currentChatMessages = document.getElementById("channelMessages").children;
-  loadServerData(await getChatID(ServerName));
+  let id = await getChatID(ServerName);
+  if (id == undefined) {
+    console.error("ServerID = undefined");
+  }
+  loadServerData(id);
   const msgReceiveInteval = setInterval(() => pollMessages(0), 1000);
 };

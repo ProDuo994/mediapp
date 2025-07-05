@@ -247,8 +247,16 @@ body {
   align-self: center;
 }
 
+.channelAdd:hover {
+  cursor: pointer;
+}
+
 .channelSettings {
   background-color: rgb(122, 191, 214);
+}
+
+.channelSettings:hover {
+  cursor: pointer;
 }
 
 .panelheader {
@@ -299,6 +307,24 @@ dialog {
   text-align: center;
   padding-top: 100px;
   border-color: black;
+}
+
+.servername {
+  padding-left: 10px;
+}
+
+.serverAdd {
+  background-color: rgb(122, 191, 214);
+  align-self: center;
+}
+
+.serverSettingsDialogForm {
+  margin: auto;
+  align-self: center;
+}
+
+.serverAdd:hover {
+  cursor: pointer;
 }
 
 @media screen and (max-width: 600px) {
