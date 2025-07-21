@@ -4,6 +4,7 @@ import fs from "fs";
 import { Client, connect, Result, ResultIterator } from "ts-postgres";
 import bcrypt from "bcrypt";
 import { Group, Account, Message, Database, Profile } from "./types/types";
+import { stringify } from "querystring";
 const app = express();
 app.use(express.json());
 app.use(
@@ -19,13 +20,6 @@ let USERSDATABASE: Database;
 let client: Client;
 
 (async () => {
-  const userData = await readDatabase("database/users.json");
-  const serverData = await readDatabase("database/servers.json");
-  if (!userData || !serverData) {
-    throw new Error("Failed to load user database");
-  }
-  USERSDATABASE = userData;
-  SERVERDATABASE = serverData;
   try {
     client = await connect({
       user: "postgres",
@@ -36,27 +30,6 @@ let client: Client;
     console.error("Could not connect to SQL Database @ chatmanager:38");
   }
 })();
-
-async function readDatabase(name: string): Promise<Database | null> {
-  try {
-    const d = await fs.promises.readFile(name, "utf8");
-    return JSON.parse(d);
-  } catch (e) {
-    console.error(e);
-    return null;
-  }
-}
-
-async function writeDatabase(data: object, name: string) {
-  if (!data) return console.log("No Data found");
-  try {
-    const e: any = await readDatabase(name);
-    await fs.promises.writeFile(`${name}_bak.json`, JSON.stringify(e));
-    await fs.promises.writeFile(name, JSON.stringify(data));
-  } catch {
-    return console.error("Failed to write to database @ chatmanager:39");
-  }
-}
 
 function binarySearch<Sortable>(
   arr: Sortable[],
@@ -75,32 +48,25 @@ function binarySearch<Sortable>(
 
 async function findUsernameByDisplayName(
   displayName: string
-): Promise<string | null> {
-  if (!USERSDATABASE) {
-    console.error("Could not read database");
-    return null;
+): Promise<Result<string> | null> {
+  console.log(displayName);
+  const res = client.query<string>(`SELECT ${displayName} FROM users`);
+  console.log(res);
+  if (res == undefined) {
+    console.error("Could not find account in SQL Database");
   }
-  for (const username in USERSDATABASE.accounts) {
-    if (USERSDATABASE.accounts[username].displayName === displayName) {
-      return username;
-    }
-  }
-  return null;
+  return res;
 }
 
 async function findAccountInDatabase(
-  databaseName: string,
   username: string
 ): Promise<Account | void> {
-  if (!databaseName || !username) {
-    console.error("Args not provided");
+  if (!username) {
+    console.error("Username not provided");
     return undefined;
   }
-  const database: Database | null = await readDatabase(databaseName);
-  if (database === null) {
-    return console.error("Could not find account");
-  }
-  return database.accounts[username];
+  const res = client.query<Account>(`SELECT ${username} FROM users`);
+  return res;
 }
 
 app.post("/signup", async (req: Request, res: Response): Promise<any> => {
@@ -113,7 +79,7 @@ app.post("/signup", async (req: Request, res: Response): Promise<any> => {
     password,
     userID: 2,
   };
-  await addNewAccountToDatabase("database/users.json", account);
+  await addNewAccountToDatabase(account);
   return res.status(200).send(account);
 });
 
@@ -146,11 +112,11 @@ app.post("/addFreind", async (req: Request, res: Response): Promise<any> => {
   if (usr == null || friendName == null) {
     return res.status(400).send("Please add all arguments");
   }
-  const account: Account | void = USERSDATABASE.accounts[usr];
-  if (account === undefined) {
+  const freind = client.query<Account>(`SELECT ${friendName} FROM users`);
+  if (freind === undefined) {
     return res.status(404).send("Could not find account");
   }
-  return res.status(200).send(account);
+  return res.status(200).send(freind);
 });
 
 app.post(
@@ -162,7 +128,9 @@ app.post(
     if (cName == null || cDes == null || cOwner == null) {
       return res.status(400).send("Please add all arguments");
     }
-    const account: Account | void = USERSDATABASE.accounts[cOwner];
+    const account = client.query<Account>(
+      `INSERT INTO channels (channelName, channelDes, ChannelOwner) VALUES ${cName} ${cDes} ${cOwner}`
+    );
     if (account === undefined) {
       return res.status(404).send("Could not find account");
     }
@@ -201,13 +169,12 @@ app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
   }
   const username = await findUsernameByDisplayName(sender);
   if (username == undefined) {
-    console.error("Could not find the required args/chatmanager:136");
+    console.error(
+      "Could not find the required args (username)/chatmanager:136"
+    );
     return res.status(404).send("Could not find database");
   }
-  const acc: Account | void = await findAccountInDatabase(
-    "database/users.json",
-    username
-  );
+  const acc: Account | void = await findAccountInDatabase(username);
   if (!acc || typeof acc !== "object" || !acc.displayName) {
     console.error("ERROR: Could not send message @ chatmanager:137");
     return res.status(404).send("Could not find account");
@@ -221,14 +188,15 @@ app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
   if (isGroup === true) {
     return res.status(200).send("Group message received");
   } else {
-    let JSONMsg: Message = {
+    let SQLMessage: Message = {
       sender: fullMessage.sender,
       message: fullMessage.message,
       timesent: fullMessage.timesent,
     };
-    writeDatabase(JSONMsg, "database/users.json");
-    console.log(JSONMsg);
-    return res.status(200).send("Direct message sent");
+    const result = client.query<Account>(
+      `INSERT INTO messages (sender, message, timesent) VALUES (${SQLMessage.sender}, ${SQLMessage.message}, ${SQLMessage.timesent})`
+    );
+    return res.status(200).send(result);
   }
 });
 
@@ -260,7 +228,9 @@ app.post("/updateSettings", async (req: Request, res: Response) => {
 });
 
 async function usernameToMember(username: string): Promise<Profile | null> {
-  let usernameInDatabase = USERSDATABASE.accounts[username];
+  let usernameInDatabase = client.query<Account>(
+    `SELECT ${username} FROM users`
+  );
   if (usernameInDatabase == undefined) {
     return null;
   }
@@ -316,7 +286,7 @@ function findServerInDatabase(id: number) {
 async function getServerMemberUsernames(
   serverID: number
 ): Promise<string | null> {
-  const members = USERSDATABASE.servers[serverID]?.members;
+  const members = client.query<Account>("SELECT * FROM users");
   if (!members) {
     console.error("Members not found for the given server ID");
     return null;
@@ -366,8 +336,7 @@ app.get("/getChatID", async (req: Request, res: Response): Promise<any> => {
 app.get(
   `/getChannelMessageServer`,
   async (req: Request, res: Response): Promise<any> => {
-    const serverID = req.query["serverID"];
-    let messages = SERVERDATABASE.messages;
+    let messages = client.query("SELECT messages FROM servers");
     if (messages) {
       return res.status(200).send(messages);
     }
@@ -387,19 +356,10 @@ app.post("/test", (_req: Request, res: Response) => {
   res.status(200).send("Server Is Running");
 });
 
-async function addNewAccountToDatabase(
-  databaseName: string,
-  newAccount: Account
-) {
-  if (databaseName == null) {
-    return console.error("Database name not provided");
-  }
-  const database = await readDatabase(databaseName);
-  if (database === null) {
-    return console.error("No Existing Data");
-  }
-  database.accounts[newAccount.username] = newAccount;
-  await writeDatabase(database, databaseName);
+async function addNewAccountToDatabase(newAccount: Account) {
+  const res = client.query<Account>(
+    `INSERT INTO users (displayname, username, password) VALUES ("${newAccount.displayName}", "${newAccount.username}", "${newAccount.userID}")`
+  );
 }
 
 app.get("/getChatMessages", async (req: Request, res: any) => {
@@ -408,21 +368,12 @@ app.get("/getChatMessages", async (req: Request, res: any) => {
     return res.status(400).send("Must provide server ID");
   }
   const serverIDStr = Array.isArray(serverID) ? serverID[0] : serverID;
-  console.log("SERVERDATABASE: ", SERVERDATABASE.servers);
-  if (SERVERDATABASE.messages == undefined) {
-    return res.status(404).send("Could not find messages");
-  }
+
   return res.status(200).send(findServerInDatabase(serverID));
 });
 
 async function startServer() {
   try {
-    const userData = await readDatabase("database/users.json");
-    const serverData = await readDatabase("database/servers.json");
-    if (!userData || !serverData) {
-      throw new Error("Failed to load databases");
-    }
-
     app.listen(PORT, () => {
       console.log(`Mediapp listening on port ${PORT}.`);
     });
