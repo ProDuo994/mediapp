@@ -27,7 +27,7 @@ let client: Client;
       database: "mediapp",
     });
   } catch {
-    console.error("Could not connect to SQL Database @ chatmanager:38");
+    console.error("Could not connect to SQL Database @ chatmanager:30");
   }
 })();
 
@@ -50,7 +50,7 @@ async function findUsernameByDisplayName(
   displayName: string
 ): Promise<Result<string> | null> {
   console.log(displayName);
-  const res = client.query<string>(`SELECT ${displayName} FROM users`);
+  const res = await client.query<string>(`SELECT ${displayName} FROM users`);
   console.log(res);
   if (res == undefined) {
     console.error("Could not find account in SQL Database");
@@ -65,7 +65,7 @@ async function findAccountInDatabase(
     console.error("Username not provided");
     return undefined;
   }
-  const res = client.query<Account>(`SELECT ${username} FROM users`);
+  const res = await client.query<Account>(`SELECT ${username} FROM users`);
   return res;
 }
 
@@ -242,10 +242,6 @@ async function usernameToMember(username: string): Promise<Profile | null> {
   return member;
 }
 
-async function createFolder(folderName: string, dir: string) {
-  await fs.promises.mkdir(`${dir}/${folderName}`);
-}
-
 async function createChat(
   chatName: string,
   chatDes: string,
@@ -307,17 +303,17 @@ async function getServerData(serverID: number): Promise<string | void> {
 
 app.post("/createChat", async (req: Request, res: Response): Promise<any> => {
   try {
-    let chatName = req.query["chatName"];
-    let chatDescription = req.query["chatDes"];
-    let chatOwner = req.query["chatOwner"];
-    if (!chatName || !chatDescription || !chatOwner) {
+    let chatName,
+      chatDes,
+      chatOwner = req.query;
+    if (!chatName || !chatDes || !chatOwner) {
       return res
         .status(400)
         .send("Chat name or chat description not provided.");
     }
     let chat = await createChat(
       chatName as string,
-      chatDescription as string,
+      chatDes as string,
       chatOwner as unknown as Account
     );
     return res.status(200).send(chat);
@@ -329,7 +325,7 @@ app.post("/createChat", async (req: Request, res: Response): Promise<any> => {
 
 app.get("/getChatID", async (req: Request, res: Response): Promise<any> => {
   const chatName = req.body.chatName;
-  const chatID = 0; // To Change to actual database chatID
+  const chatID = 0;
   return res.status(200).send({ chatID: chatID });
 });
 
@@ -357,7 +353,7 @@ app.post("/test", (_req: Request, res: Response) => {
 });
 
 async function addNewAccountToDatabase(newAccount: Account) {
-  const res = client.query<Account>(
+  const res = await client.query<Account>(
     `INSERT INTO users (displayname, username, password) VALUES ("${newAccount.displayName}", "${newAccount.username}", "${newAccount.userID}")`
   );
 }
@@ -368,7 +364,6 @@ app.get("/getChatMessages", async (req: Request, res: any) => {
     return res.status(400).send("Must provide server ID");
   }
   const serverIDStr = Array.isArray(serverID) ? serverID[0] : serverID;
-
   return res.status(200).send(findServerInDatabase(serverID));
 });
 
