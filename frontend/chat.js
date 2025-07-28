@@ -190,7 +190,8 @@ function pollMessages(serverID) {
         "X-Content-Type-Options": "nosniff",
       },
     }
-  )
+  );
+  getChannelMessageServer(serverID)
     .then((res) => res.json())
     .then((res) => {
       const server1 = res["SERVER 1"];

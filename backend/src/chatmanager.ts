@@ -5,6 +5,7 @@ import { Client, connect, Result, ResultIterator } from "ts-postgres";
 import bcrypt from "bcrypt";
 import { Group, Account, Message, Database, Profile } from "./types/types";
 import { stringify } from "querystring";
+import { Server } from "http";
 const app = express();
 app.use(express.json());
 app.use(
@@ -50,7 +51,9 @@ async function findUsernameByDisplayName(
   displayName: string
 ): Promise<Result<string> | null> {
   console.log(displayName);
-  const res = await client.query<string>(`SELECT ${displayName} FROM users`);
+  const res = await client.query<string>(
+    `SELECT ${displayName} FROM public.users`
+  );
   console.log(res);
   if (res == undefined) {
     console.error("Could not find account in SQL Database");
@@ -65,7 +68,9 @@ async function findAccountInDatabase(
     console.error("Username not provided");
     return undefined;
   }
-  const res = await client.query<Account>(`SELECT ${username} FROM users`);
+  const res = await client.query<Account>(
+    `SELECT ${username} FROM public.users`
+  );
   return res;
 }
 
@@ -86,7 +91,7 @@ app.post("/signup", async (req: Request, res: Response): Promise<any> => {
 app.post("/login", async (req: Request, res: Response): Promise<any> => {
   let { usr, psw } = req.body;
   const result: ResultIterator<Account> = client.query<Account>(
-    `SELECT * FROM users WHERE username='${usr}' AND password='${psw}'`
+    `SELECT * FROM public.users WHERE username='${usr}' AND password='${psw}'`
   );
   const acc = await result.one();
   console.log(acc);
@@ -112,7 +117,9 @@ app.post("/addFreind", async (req: Request, res: Response): Promise<any> => {
   if (usr == null || friendName == null) {
     return res.status(400).send("Please add all arguments");
   }
-  const freind = client.query<Account>(`SELECT ${friendName} FROM users`);
+  const freind = client.query<Account>(
+    `SELECT ${friendName} FROM public.users`
+  );
   if (freind === undefined) {
     return res.status(404).send("Could not find account");
   }
@@ -229,7 +236,7 @@ app.post("/updateSettings", async (req: Request, res: Response) => {
 
 async function usernameToMember(username: string): Promise<Profile | null> {
   let usernameInDatabase = client.query<Account>(
-    `SELECT ${username} FROM users`
+    `SELECT ${username} FROM public.users`
   );
   if (usernameInDatabase == undefined) {
     return null;
@@ -247,11 +254,14 @@ async function createChat(
   chatDes: string,
   chatOwner: Account
 ): Promise<Group | void> {
-  let exists = activeChats.find((name) => name === chatName);
-  if (exists) {
-    return console.log("Name allready exists");
-  } else {
-    const newChat: Group = {
+  try {
+    await client.query(`SELECT ${chatName} FROM public.users`);
+  } catch {
+    // Chat does not allready exist
+    await client.query(
+      `INSERT INTO chats ("chatName", "chatDes", "chatOwner") VALUES (${chatName}, ${chatDes}, ${chatOwner})`
+    );
+    const chat: Group = {
       groupName: chatName,
       groupDescription: chatDes,
       members: [],
@@ -259,7 +269,7 @@ async function createChat(
       isPublic: false,
       id: 0,
     };
-    return newChat;
+    return chat;
   }
 }
 
@@ -282,7 +292,7 @@ function findServerInDatabase(id: number) {
 async function getServerMemberUsernames(
   serverID: number
 ): Promise<string | null> {
-  const members = client.query<Account>("SELECT * FROM users");
+  const members = client.query<Account>("SELECT * FROM public.users");
   if (!members) {
     console.error("Members not found for the given server ID");
     return null;
@@ -332,9 +342,11 @@ app.get("/getChatID", async (req: Request, res: Response): Promise<any> => {
 app.get(
   `/getChannelMessageServer`,
   async (req: Request, res: Response): Promise<any> => {
-    let messages = client.query("SELECT messages FROM servers");
-    if (messages) {
-      return res.status(200).send(messages);
+    let server = await client.query("SELECT messages FROM public.servers");
+    if (!server) {
+      return res
+        .status(401)
+        .send("Server not defined in arguments chatmanager:341");
     }
   }
 );
@@ -361,7 +373,7 @@ async function addNewAccountToDatabase(newAccount: Account) {
 app.get("/getChatMessages", async (req: Request, res: any) => {
   let serverID = req.query["serverID"] as any;
   if (serverID == undefined) {
-    return res.status(400).send("Must provide server ID");
+    return res.status(400).send("Must provide server ID chatManager:364");
   }
   const serverIDStr = Array.isArray(serverID) ? serverID[0] : serverID;
   return res.status(200).send(findServerInDatabase(serverID));

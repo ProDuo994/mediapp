@@ -7,3 +7,5 @@ Restore Database(Use at home to get the databasse. Use Dump to save before push)
 Create Row in Users Table: INSERT INTO users (displayName, username, password) VALUES ('displayName', 'username', 'password')
 
 Read Database: SELECT * FROM users;
+
+Database Map:
