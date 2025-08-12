@@ -327,6 +327,11 @@ dialog {
   cursor: pointer;
 }
 
+.newChannelDialogForm {
+  align-self: center;
+  margin: auto;
+}
+
 @media screen and (max-width: 600px) {
   .channelList {
     width: 100px;

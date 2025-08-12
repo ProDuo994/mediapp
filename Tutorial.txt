@@ -1,6 +1,6 @@
 PASSWORD = posttgres
 
-Dump Database(Use in backend): pg_dump -U postgres -W postgres mediapp > ./backend/database/db_backup.sql
+Dump Database(Use in backend)(powershell): $env:PGPASSWORD = 'postgres'; pg_dump -U postgres -w mediapp > ./backend/database/db_backup.sql
 
 Restore Database(Use at home to get the databasse. Use Dump to save before push): psql -U postgres -W postgres -X mediapp < ./backend/database/db_backup.sql
 
