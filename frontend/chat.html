@@ -21,12 +21,27 @@
         </form>
       </div>
     </dialog>
+    <dialog id="newServerDialog">
+      <div class="newServerDialogForm">
+        <form id="newServerDialogForm">
+          <h2>New Server</h2>
+          <h5>Server Name: </h5>
+          <input type="text" id="servername">
+          <h5>Server Description: </h5>
+          <input type="text" id="serverdes">
+          <h5>Public?: </h5>
+          <input type="checkbox" id="serverispublic">
+          <br>
+          <button id="createServerButton">Create</button>
+        </form>
+      </div>
+    </dialog>
     <dialog id="newChannelDialog">
       <div class="newChannelDialogForm">
         <form id="newChannelDialogForm">
           <h2>New Channel</h2>
           <h5>Channel Name:</h5>
-          <input name="name" id="serverName">
+          <input name="name" id="channelname">
           <button type="submit">Add</button>
           <button type="button" class="closeChannelDialog" id="closeChannelDialog">
             Close
@@ -88,7 +103,7 @@
           <li>Server 1</li>
           <li>Server 2</li>
           <br>
-          <button class="serverAdd" style="font-size: medium;"><b>+</b></button>
+          <button class="serverAdd" id="serverAdd" style="font-size: medium;"><b>+</b></button>
         </ul>
       </aside>
       <div class="channelList">

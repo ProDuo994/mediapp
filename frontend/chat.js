@@ -69,7 +69,7 @@ function sendMessage(sender, message, isGroup) {
 }
 
 function createChat(name, des) {
-  fetch(`${server}/createchat`, {
+  fetch(`${server}/createServer`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -235,6 +235,11 @@ const channel1Header = document.getElementById("channel1");
 const channelDesHeader = document.getElementById("channelDesText");
 const menuButton = document.getElementById("menuIcon");
 const serverSettingsGui = document.getElementById("serverSettingsDialog");
+const newServerButton = document.getElementById("serverAdd");
+const newServerDialog = document.getElementById("newServerDialog");
+const serverFormName = document.getElementById("servername");
+const serverFormDes = document.getElementById("serverdes");
+const createServerButton = document.getElementById("createServerButton");
 
 let channelName = "Test Server";
 let channelDes = "Test Description";
@@ -260,6 +265,15 @@ function updateChannelSettings() {
   channel1Header.innerText = channelName;
   channelDesHeader.innerText = channelDes;
 }
+
+newServerButton.addEventListener("click", (event) => {
+  newServerDialog.showModal();
+});
+
+createServerButton.addEventListener("click", (event) => {
+  event.preventDefault();
+  createChat(serverFormName.innerText, serverFormDes.innerText);
+});
 
 channelSettingsButton.addEventListener("click", (event) => {
   channelSettingsGui.showModal();

@@ -5,7 +5,7 @@ import { Client, connect, Result, ResultIterator } from "ts-postgres";
 import bcrypt from "bcrypt";
 import { Group, Account, Message, Database, Profile } from "./types/types";
 import { stringify } from "querystring";
-import { Server } from "http";
+
 const app = express();
 app.use(express.json());
 app.use(
@@ -15,9 +15,6 @@ app.use(
   })
 );
 const PORT: number = 3000;
-let activeChats: string[] = [];
-let SERVERDATABASE: Database;
-let USERSDATABASE: Database;
 let client: Client;
 
 (async () => {
@@ -156,18 +153,6 @@ function formatMessage(
   };
 }
 
-function getOwnerOfGroup(groupName: string): Profile | null {
-  const owner: Profile = {
-    username: "",
-    displayName: "",
-    userID: 0,
-  };
-  if (owner == undefined) {
-    return null;
-  }
-  return owner;
-}
-
 app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
   const { sender, message, isGroup } = req.body;
   if (!sender || !message) {
@@ -234,45 +219,6 @@ app.post("/updateSettings", async (req: Request, res: Response) => {
   res.status(200).send("Settings updated");
 });
 
-async function usernameToMember(username: string): Promise<Profile | null> {
-  let usernameInDatabase = client.query<Account>(
-    `SELECT ${username} FROM public.users`
-  );
-  if (usernameInDatabase == undefined) {
-    return null;
-  }
-  const member: Profile = {
-    username: "Name",
-    displayName: "name",
-    userID: 1,
-  };
-  return member;
-}
-
-async function createChat(
-  chatName: string,
-  chatDes: string,
-  chatOwner: Account
-): Promise<Group | void> {
-  try {
-    await client.query(`SELECT ${chatName} FROM public.users`);
-  } catch {
-    // Chat does not allready exist
-    await client.query(
-      `INSERT INTO chats ("chatName", "chatDes", "chatOwner") VALUES (${chatName}, ${chatDes}, ${chatOwner})`
-    );
-    const chat: Group = {
-      groupName: chatName,
-      groupDescription: chatDes,
-      members: [],
-      owner: chatOwner,
-      isPublic: false,
-      id: 0,
-    };
-    return chat;
-  }
-}
-
 function findServerInDatabase(id: number) {
   const server: Group = {
     groupName: "",
@@ -311,22 +257,17 @@ async function getServerData(serverID: number): Promise<string | void> {
   return data;
 }
 
-app.post("/createChat", async (req: Request, res: Response): Promise<any> => {
+app.post("/createServer", async (req: Request, res: Response): Promise<any> => {
+  let chatName,
+    chatDes,
+    chatOwner = req.query;
+  if (!chatName || !chatDes || !chatOwner) {
+    return res.status(400).send("Chat name or chat description not provided.");
+  }
   try {
-    let chatName,
-      chatDes,
-      chatOwner = req.query;
-    if (!chatName || !chatDes || !chatOwner) {
-      return res
-        .status(400)
-        .send("Chat name or chat description not provided.");
-    }
-    let chat = await createChat(
-      chatName as string,
-      chatDes as string,
-      chatOwner as unknown as Account
+    await client.query<Group>(
+      `INSERT INTO servers ("servername", "serverdes", "serverowner") VALUES (${chatName}, ${chatDes}, ${chatOwner})`
     );
-    return res.status(200).send(chat);
   } catch (error) {
     console.error(error);
     return res.status(500).send("Internal server error");
@@ -342,7 +283,7 @@ app.get("/getChatID", async (req: Request, res: Response): Promise<any> => {
 app.get(
   `/getChannelMessageServer`,
   async (req: Request, res: Response): Promise<any> => {
-    let server = await client.query("SELECT messages FROM public.servers");
+    let server = await client.query("SELECT * FROM public.messages WHERE ");
     if (!server) {
       return res
         .status(401)
