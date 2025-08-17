@@ -1,10 +1,8 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
-import fs from "fs";
 import { Client, connect, Result, ResultIterator } from "ts-postgres";
 import bcrypt from "bcrypt";
 import { Group, Account, Message, Database, Profile } from "./types/types";
-import { stringify } from "querystring";
 
 const app = express();
 app.use(express.json());
@@ -238,7 +236,7 @@ function findServerInDatabase(id: number) {
 async function getServerMemberUsernames(
   serverID: number
 ): Promise<string | null> {
-  const members = client.query<Account>("SELECT * FROM public.users");
+  const members = client.query<Account>("SELECT * FROM public.users WHERE serverID = ", [serverID]);
   if (!members) {
     console.error("Members not found for the given server ID");
     return null;

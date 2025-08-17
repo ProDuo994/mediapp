@@ -28,7 +28,8 @@ function login(username, password) {
           processLogin(displayname, 0);
         });
       } else {
-        window.alert("Username or Password incorrect!");
+        document.getElementById("errorMessage").innerText =
+          "Invalid username or password.";
         loginButton.disabled = false;
       }
     })
@@ -84,7 +85,7 @@ function enryptPassword(password) {
 
 function decryptPassword(password) {
   if (password != null) {
-    password = password;
+    password = "$" + password + "$";
     return password;
   } else {
     console.warn("Password not provided");

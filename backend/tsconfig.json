@@ -107,5 +107,5 @@
   },
   "exclude": ["node_modules", "dist"],
   "include": ["src/**/*.ts", "tests/**/*.spec.ts"],
-  "files": ["src/chatmanager.ts", "src/accountmanager.ts"]
+  "files": ["src/chatmanager.ts"]
 }

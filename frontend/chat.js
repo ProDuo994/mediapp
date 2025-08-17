@@ -314,17 +314,6 @@ messageBoxInput.addEventListener("keydown", (event) => {
   }
 });
 
-function loadServerData(serverID) {
-  let database = "../backend/database.json";
-  //let data = database.servers[serverID];
-  return 0;
-}
-
-function saveServerData(serverID) {
-  let database = "../backend/database.json";
-  let currentMessages = getMessagesFromClient();
-  database.messages = currentMessages;
-}
 
 function addFriend(userID) {
   console.log("Friend Added With ID: " + userID);
@@ -336,6 +325,5 @@ window.onload = async () => {
   if (id == undefined) {
     console.error("ServerID = undefined");
   }
-  loadServerData(id);
   const msgReceiveInteval = setInterval(() => pollMessages(0), 1000);
 };

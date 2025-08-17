@@ -5,8 +5,7 @@
     <title>Chat | MEDIAPP</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="style.css" />
-    <base href="index.html">
-    <link rel="icon" type="image/x-icon" href="images/favicon.png">
+    <link rel="icon" type="image/x-icon" href="images/favicon.png" />
   </head>
   <body>
     <noscript>
@@ -16,8 +15,8 @@
       <div class="serverSettingsDialogForm">
         <form>
           <h1>Server Settings</h1>
-          <h5>Server Name: </h5>
-          <input type="text">
+          <h5>Server Name:</h5>
+          <input type="text" />
         </form>
       </div>
     </dialog>
@@ -25,13 +24,13 @@
       <div class="newServerDialogForm">
         <form id="newServerDialogForm">
           <h2>New Server</h2>
-          <h5>Server Name: </h5>
-          <input type="text" id="servername">
-          <h5>Server Description: </h5>
-          <input type="text" id="serverdes">
-          <h5>Public?: </h5>
-          <input type="checkbox" id="serverispublic">
-          <br>
+          <h5>Server Name:</h5>
+          <input type="text" id="servername" />
+          <h5>Server Description:</h5>
+          <input type="text" id="serverdes" />
+          <h5>Public?:</h5>
+          <input type="checkbox" id="serverispublic" />
+          <br />
           <button id="createServerButton">Create</button>
         </form>
       </div>
@@ -41,18 +40,27 @@
         <form id="newChannelDialogForm">
           <h2>New Channel</h2>
           <h5>Channel Name:</h5>
-          <input name="name" id="channelname">
+          <input name="name" id="channelname" />
           <button type="submit">Add</button>
-          <button type="button" class="closeChannelDialog" id="closeChannelDialog">
+          <button
+            type="button"
+            class="closeChannelDialog"
+            id="closeChannelDialog"
+          >
             Close
           </button>
         </form>
       </div>
     </dialog>
     <dialog class="uploadImageGUI" id="uploadImageGUI">
-      <input type="file" name="File:" id="" accept=".jpeg, .jpg, .png, .svg, .gif">
+      <input
+        type="file"
+        name="File:"
+        id=""
+        accept=".jpeg, .jpg, .png, .svg, .gif"
+      />
       <button id="closeUploadGui">Close</button>
-      <img src=""/>
+      <img src="" />
     </dialog>
     <dialog>
       <h5>Voice Recording</h5>
@@ -60,14 +68,20 @@
     <dialog class="channelSettingsGUI" id="channelSettingsGUI">
       <form>
         <h1>Settings</h1>
-        <h4>Channel Name</h4> 
-        <input autocomplete="off" required type="text" name="name" id="channelNameBox">
-        <h4>Channel Description</h4> 
-        <input autocomplete="off" type="text" name="des" id="chanelDesBox">
+        <h4>Channel Name</h4>
+        <input
+          autocomplete="off"
+          required
+          type="text"
+          name="name"
+          id="channelNameBox"
+        />
+        <h4>Channel Description</h4>
+        <input autocomplete="off" type="text" name="des" id="chanelDesBox" />
         <br />
-        <h4>Visible:</h5>
+        <h4>Visible:</h4>
         <input type="checkbox" name="p" id="visibleCheckbox" />
-        <h4>Can Message:</h5>
+        <h4>Can Message:</h4>
         <input type="checkbox" name="msg" id="messageCheckbox" />
         <br />
         <button type="submit" id="submitSettings">Confirm</button>
@@ -85,8 +99,8 @@
         <div class="serverMenu" id="serverMenu">
           <dialog>
             <h2>Server Settings</h2>
-            <H5>Server Name:</H5>
-            <input type="text">
+            <h5>Server Name:</h5>
+            <input type="text" />
             <h2>Settings</h2>
             <a href="#">Group</a>
             <a href="#">Members</a>
@@ -102,8 +116,10 @@
           <h2>Servers</h2>
           <li>Server 1</li>
           <li>Server 2</li>
-          <br>
-          <button class="serverAdd" id="serverAdd" style="font-size: medium;"><b>+</b></button>
+          <br />
+          <button class="serverAdd" id="serverAdd" style="font-size: medium">
+            <b>+</b>
+          </button>
         </ul>
       </aside>
       <div class="channelList">
@@ -114,12 +130,19 @@
         <a href="#" id="channel2">Channel 2</a>
         <br />
         <br />
-        <button class="channelAdd" id="channelAdd" style="font-size: medium;"><b>+</b></button>
+        <button class="channelAdd" id="channelAdd" style="font-size: medium">
+          <b>+</b>
+        </button>
       </div>
       <div class="mainArea" id="mainarea">
         <div class="channelHeader" id="channelHeader">
           <h2 id="channelHeaderText">Channel Name</h2>
-          <h4 style="font-weight: lighter; padding-right: 250px;" id="channelDesText"><i>Channel Description</i></h4>
+          <h4
+            style="font-weight: lighter; padding-right: 250px"
+            id="channelDesText"
+          >
+            <i>Channel Description</i>
+          </h4>
           <button class="channelSettings" id="channelSettings">Settings</button>
         </div>
         <div class="channelMessages" id="channelMessages">
@@ -128,7 +151,13 @@
         <div class="messageBox">
           <button id="sendImaageButton" class="messageButtons">Image</button>
           <button id="sendVoiceButton" class="messageButtons">Voice</button>
-          <input autocapitalize="false" autocomplete="false" type="text" id="messageBoxInput" spellcheck="false"/>
+          <input
+            autocapitalize="false"
+            autocomplete="false"
+            type="text"
+            id="messageBoxInput"
+            spellcheck="false"
+          />
         </div>
       </div>
       <div class="memberList">
@@ -173,8 +202,9 @@
       window.onload = () => {
         channel1Button.addEventListener("click", (event) => {});
         channel2Button.addEventListener("click", (event) => {
-        openChannel(2);
-        });}
+          openChannel(2);
+        });
+      };
     </script>
     <script src="chat.js"></script>
   </body>
