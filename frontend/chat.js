@@ -1,7 +1,6 @@
 const server = "http://127.0.0.1:3000"; // localhost (do not change)
-const loggedInDisplayName = localStorage.getItem("displayName");
-
-if (!loggedInDisplayName) {
+const displayName = localStorage.getItem("displayName");
+if (!displayName) {
   window.location.href = "index.html";
 }
 let currentChatMessages;
@@ -11,8 +10,26 @@ let messageHistory = [];
 let lastAmountOfMessages = getLastMesssagesLength();
 
 function getLastMesssagesLength() {
-  const amount = messageHistory.length;
-  return amount;
+  return messageHistory.length;
+}
+
+function getChannelMessageServer(id) {
+  if (!id) {
+    return null;
+  }
+  fetch(`${server}/getChannelMessageServer`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Content-Type-Options": "nosniff",
+    },
+    body: {
+      serverid: id,
+    },
+  }).then((res) => {
+    res.json().then((json) => (chatMessagesFromServer = json));
+    return chatMessagesFromServer;
+  });
 }
 
 function getServer(serverID) {
@@ -36,7 +53,6 @@ function getServer(serverID) {
     .catch((err) => {
       return console.err(err);
     });
-  return;
 }
 
 function sendMessage(sender, message, isGroup) {
@@ -63,7 +79,7 @@ function sendMessage(sender, message, isGroup) {
       })
       .catch((err) => {
         reject(err);
-        console.error("Error:", err);
+        console.error(err);
       });
   });
 }
@@ -100,8 +116,7 @@ function getChatID(name) {
 function getMessageFromServer(serverID) {
   const getMessagePromise = new Promise((resolve, reject) => {
     if (serverID == undefined) {
-      reject("Must provide serverID");
-      return;
+      return reject("Must provide serverID");
     }
 
     fetch(
@@ -117,11 +132,6 @@ function getMessageFromServer(serverID) {
       }
     )
       .then((res) => {
-        console.log(
-          `${server}/getChatMessages?${new URLSearchParams({
-            serverID: serverID,
-          })}`
-        );
         res
           .json()
           .then((json) => resolve(json))
@@ -134,21 +144,6 @@ function getMessageFromServer(serverID) {
       });
   });
   return getMessagePromise;
-}
-
-function getChannelMessageServer(name) {
-  if (name === undefined) {
-    return false;
-  }
-  fetch(`${server}/getChannelMessageServer`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Content-Type-Options": "nosniff",
-    },
-  }).then((res) => {
-    res.json().then((json) => (chatMessagesFromServer = json));
-  });
 }
 
 function getMessagesFromClient() {
@@ -174,7 +169,7 @@ function updateSettingsEndpoint(serverName, serverDes, isVisible, canMessage) {
 
 function createChannel(chatName, channelName) {
   if (chatName == undefined || channelName == undefined) {
-    console.error("All args not fufilled @ chat.js @ 177");
+    console.error("All args not fufilled @ chat.js:177");
   }
 }
 
@@ -314,10 +309,7 @@ messageBoxInput.addEventListener("keydown", (event) => {
   }
 });
 
-
-function addFriend(userID) {
-  console.log("Friend Added With ID: " + userID);
-}
+function addFriend(userID) {}
 
 window.onload = async () => {
   currentChatMessages = document.getElementById("channelMessages").children;

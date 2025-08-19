@@ -42,18 +42,11 @@ function binarySearch<Sortable>(
   return null;
 }
 
-async function findUsernameByDisplayName(
-  displayName: string
-): Promise<Result<string> | null> {
-  console.log(displayName);
-  const res = await client.query<string>(
-    `SELECT ${displayName} FROM public.users`
+async function getUserFromID(id: number) {
+  const query = client.query<Account>(
+    "SELECT * FROM public.users WHERE userid=" + id
   );
-  console.log(res);
-  if (res == undefined) {
-    console.error("Could not find account in SQL Database");
-  }
-  return res;
+  return query.first();
 }
 
 async function findAccountInDatabase(
@@ -89,7 +82,6 @@ app.post("/login", async (req: Request, res: Response): Promise<any> => {
     `SELECT * FROM public.users WHERE username='${usr}' AND password='${psw}'`
   );
   const acc = await result.one();
-  console.log(acc);
   if (acc === undefined) {
     return res.status(400).send("Could not find account");
   }
@@ -130,11 +122,11 @@ app.post(
     if (cName == null || cDes == null || cOwner == null) {
       return res.status(400).send("Please add all arguments");
     }
-    const account = client.query<Account>(
+    const channel = client.query(
       `INSERT INTO channels (channelName, channelDes, ChannelOwner) VALUES ${cName} ${cDes} ${cOwner}`
     );
-    if (account === undefined) {
-      return res.status(404).send("Could not find account");
+    if (channel === undefined) {
+      return res.status(404).send("Could not create channel");
     }
   }
 );
@@ -153,14 +145,15 @@ function formatMessage(
 
 app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
   const { sender, message, isGroup } = req.body;
-  if (!sender || !message) {
+  const account = await getUserFromID(sender);
+  if (!sender || !message || !account) {
     console.error("All args not provided");
     return res.status(400).send("All args not provided");
   }
-  const username = await findUsernameByDisplayName(sender);
+  const username = account.username;
   if (username == undefined) {
     console.error(
-      "Could not find the required args (username)/chatmanager:136"
+      "Could not find the required args (username)/chatmanager:160"
     );
     return res.status(404).send("Could not find database");
   }
@@ -236,7 +229,10 @@ function findServerInDatabase(id: number) {
 async function getServerMemberUsernames(
   serverID: number
 ): Promise<string | null> {
-  const members = client.query<Account>("SELECT * FROM public.users WHERE serverID = ", [serverID]);
+  const members = client.query<Account>(
+    "SELECT * FROM public.users WHERE serverID = ",
+    [serverID]
+  );
   if (!members) {
     console.error("Members not found for the given server ID");
     return null;
@@ -281,7 +277,10 @@ app.get("/getChatID", async (req: Request, res: Response): Promise<any> => {
 app.get(
   `/getChannelMessageServer`,
   async (req: Request, res: Response): Promise<any> => {
-    let server = await client.query("SELECT * FROM public.messages WHERE ");
+    const serverid = req.body.serverid;
+    let server = await client.query(
+      "SELECT * FROM public.messages WHERE senderid=" + serverid
+    );
     if (!server) {
       return res
         .status(401)

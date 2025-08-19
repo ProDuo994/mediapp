@@ -23,7 +23,7 @@ export interface Account {
   username: string;
   password: string;
   userID: number;
-  displayName?: string;
+  displayName: string;
 }
 
 export interface Permissions {
