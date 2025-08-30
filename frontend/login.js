@@ -8,7 +8,6 @@ function processLogin(displayName, sessionToken) {
 }
 
 function login(username, password) {
-  console.log(username, password);
   loginButton.disabled = true;
   fetch(`${server}/login`, {
     method: "POST",
@@ -24,7 +23,7 @@ function login(username, password) {
     .then((res) => {
       console.log("received response");
       if (res.ok) {
-        res.json().then((displayname) => {
+        return res.json().then((displayname) => {
           processLogin(displayname, 0);
         });
       } else {
@@ -33,15 +32,19 @@ function login(username, password) {
         loginButton.disabled = false;
       }
     })
-    .catch(
-      (err) => console.error(err),
-      alert("Internal Error Occured. Please try again later"),
-      (loginButton.disabled = false)
-    );
+    .catch((err) => {
+      console.error(err);
+      loginButton.disabled = false;
+      if (
+        window.location.href === "http://127.0.0.1:5500/frontend/index.html"
+      ) {
+        alert("Internal Error Occurred. Please try again later.");
+      }
+    });
 }
 
-function isServerOnline() {
-  fetch(`${server}/test`, {
+async function isServerOnline() {
+  await fetch(`${server}/test`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

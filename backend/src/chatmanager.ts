@@ -3,7 +3,7 @@ import cors from "cors";
 import { Client, connect, Result, ResultIterator } from "ts-postgres";
 import bcrypt from "bcrypt";
 import { Group, Account, Message, Database, Profile } from "./types/types";
-
+import winston from "winston";
 const app = express();
 app.use(express.json());
 app.use(
@@ -12,6 +12,20 @@ app.use(
     credentials: true,
   })
 );
+const levels = {
+  error: 0,
+  warn: 1,
+  info: 2,
+  http: 3,
+  log: 4,
+};
+
+const logger = winston.createLogger({
+  level: "info",
+  format: winston.format.json(),
+  defaultMeta: { service: "user-service" },
+  transports: [new winston.transports.Console()],
+});
 const PORT: number = 3000;
 let client: Client;
 
@@ -23,7 +37,7 @@ let client: Client;
       database: "mediapp",
     });
   } catch {
-    console.error("Could not connect to SQL Database @ chatmanager:30");
+    logger.error("Could not connect to SQL Database @ chatmanager:30");
   }
 })();
 
@@ -53,12 +67,13 @@ async function findAccountInDatabase(
   username: string
 ): Promise<Account | void> {
   if (!username) {
-    console.error("Username not provided");
+    logger.error("Username not provided");
     return undefined;
   }
   const res = await client.query<Account>(
     `SELECT ${username} FROM public.users`
   );
+  const account = res.rows.di;
   return res;
 }
 
@@ -71,6 +86,7 @@ app.post("/signup", async (req: Request, res: Response): Promise<any> => {
     username,
     password,
     userID: 2,
+    displayName: username,
   };
   await addNewAccountToDatabase(account);
   return res.status(200).send(account);
@@ -78,9 +94,11 @@ app.post("/signup", async (req: Request, res: Response): Promise<any> => {
 
 app.post("/login", async (req: Request, res: Response): Promise<any> => {
   let { usr, psw } = req.body;
-  const result: ResultIterator<Account> = client.query<Account>(
-    `SELECT * FROM public.users WHERE username='${usr}' AND password='${psw}'`
+  const result = client.query<Account>(
+    "SELECT * FROM public.users WHERE username = $1 AND password = $2",
+    [usr, psw]
   );
+
   const acc = await result.one();
   if (acc === undefined) {
     return res.status(400).send("Could not find account");
@@ -122,12 +140,10 @@ app.post(
     if (cName == null || cDes == null || cOwner == null) {
       return res.status(400).send("Please add all arguments");
     }
-    const channel = client.query(
-      `INSERT INTO channels (channelName, channelDes, ChannelOwner) VALUES ${cName} ${cDes} ${cOwner}`
+    await client.query(
+      "INSERT INTO channels (channelName, channelDes, ChannelOwner) VALUES ($1, $2, $3)",
+      [cName, cDes, cOwner]
     );
-    if (channel === undefined) {
-      return res.status(404).send("Could not create channel");
-    }
   }
 );
 
@@ -147,19 +163,17 @@ app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
   const { sender, message, isGroup } = req.body;
   const account = await getUserFromID(sender);
   if (!sender || !message || !account) {
-    console.error("All args not provided");
+    logger.error("All args not provided");
     return res.status(400).send("All args not provided");
   }
   const username = account.username;
   if (username == undefined) {
-    console.error(
-      "Could not find the required args (username)/chatmanager:160"
-    );
+    logger.error("Could not find the required args (username)/chatmanager:160");
     return res.status(404).send("Could not find database");
   }
   const acc: Account | void = await findAccountInDatabase(username);
   if (!acc || typeof acc !== "object" || !acc.displayName) {
-    console.error("ERROR: Could not send message @ chatmanager:137");
+    logger.error("ERROR: Could not send message @ chatmanager:137");
     return res.status(404).send("Could not find account");
   }
   const fullMessage = formatMessage(acc.displayName, message, Date.now());
@@ -234,15 +248,16 @@ async function getServerMemberUsernames(
     [serverID]
   );
   if (!members) {
-    console.error("Members not found for the given server ID");
+    logger.error("Members not found for the given server ID");
     return null;
   }
   return members.toString();
 }
 
-async function getServerData(serverID: number): Promise<string | void> {
+async function getServerData(serverID: number): Promise<string | undefined> {
   if (!serverID) {
-    return console.error("Must provide serverID");
+    logger.error("Must provide serverID");
+    return;
   }
   let data = await getServerMemberUsernames(serverID);
   if (data == null) {
@@ -263,21 +278,21 @@ app.post("/createServer", async (req: Request, res: Response): Promise<any> => {
       `INSERT INTO servers ("servername", "serverdes", "serverowner") VALUES (${chatName}, ${chatDes}, ${chatOwner})`
     );
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     return res.status(500).send("Internal server error");
   }
 });
 
 app.get("/getChatID", async (req: Request, res: Response): Promise<any> => {
-  const chatName = req.body.chatName;
+  const chatName = req.query["chatName"] as string;
   const chatID = 0;
-  return res.status(200).send({ chatID: chatID });
+  return res.status(200).send({ chatID });
 });
 
 app.get(
   `/getChannelMessageServer`,
   async (req: Request, res: Response): Promise<any> => {
-    const serverid = req.body.serverid;
+    const serverid = req.query["serverid"];
     let server = await client.query(
       "SELECT * FROM public.messages WHERE senderid=" + serverid
     );
@@ -320,14 +335,14 @@ app.get("/getChatMessages", async (req: Request, res: any) => {
 async function startServer() {
   try {
     app.listen(PORT, () => {
-      console.log(`Mediapp listening on port ${PORT}.`);
+      logger.log("info", `Mediapp listening on port ${PORT}.`);
     });
     process.on("SIGTERM", async () => {
-      console.log("Server Shutting Down without Error");
+      logger.log("info", "Server Shutting Down without Error");
       await client.end();
     });
   } catch (error) {
-    console.error("Server failed:", error);
+    logger.error("Server failed:", error);
     process.exit(1);
   }
 }

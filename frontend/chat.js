@@ -17,16 +17,18 @@ function getChannelMessageServer(id) {
   if (!id) {
     return null;
   }
-  fetch(`${server}/getChannelMessageServer`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Content-Type-Options": "nosniff",
-    },
-    body: {
+  fetch(
+    `${server}/getChannelMessageServer?${new URLSearchParams({
       serverid: id,
-    },
-  }).then((res) => {
+    })}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Content-Type-Options": "nosniff",
+      },
+    }
+  ).then((res) => {
     res.json().then((json) => (chatMessagesFromServer = json));
     return chatMessagesFromServer;
   });
@@ -99,15 +101,18 @@ function createChat(name, des) {
 }
 
 function getChatID(name) {
-  return fetch(`${server}/getChatID`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Content-Type-Options": "nosniff",
-    },
-  }).then((res) => {
+  return fetch(
+    `${server}/getChatID?${new URLSearchParams({ chatName: name })}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Content-Type-Options": "nosniff",
+      },
+    }
+  ).then((res) => {
     res.json().then((json) => {
-      let chatID = 1;
+      let chatID = json.chatID;
       return chatID;
     });
   });
@@ -235,11 +240,15 @@ const newServerDialog = document.getElementById("newServerDialog");
 const serverFormName = document.getElementById("servername");
 const serverFormDes = document.getElementById("serverdes");
 const createServerButton = document.getElementById("createServerButton");
-
+const channelList = document.getElementById("channelList");
 let channelName = "Test Server";
 let channelDes = "Test Description";
 let visible = true;
 let canMessage = true;
+
+function selectServer(num) {}
+
+function selectChannel(num) {}
 
 function getOldServerSettings() {
   visibleCheckbox.checked = visible;
