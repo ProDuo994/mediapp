@@ -23,8 +23,8 @@ function login(username, password) {
     .then((res) => {
       console.log("received response");
       if (res.ok) {
-        return res.json().then((displayname) => {
-          processLogin(displayname, 0);
+        return res.json().then((data) => {
+          processLogin(data.displayname, 0);
         });
       } else {
         document.getElementById("errorMessage").innerText =

@@ -152,7 +152,7 @@ function getMessageFromServer(serverID) {
 }
 
 function getMessagesFromClient() {
-  let messages = [{ sender: loggedInDisplayName, message: "Hi" }];
+  let messages = [{ sender: displayName, message: "Hi" }];
   return messages;
 }
 
@@ -312,9 +312,9 @@ messageBoxInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     const message = messageBoxInput.value;
     messageBoxInput.value = "";
-    createAndAppend("h4", messageViewBox, loggedInDisplayName + ": " + message);
+    createAndAppend("h4", messageViewBox, displayName + ": " + message);
     messageHistory.push(message);
-    sendMessage(loggedInDisplayName, message, false);
+    sendMessage(displayName, message, false);
   }
 });
 

@@ -22,8 +22,8 @@ export interface Message {
 export interface Account {
   username: string;
   password: string;
-  userID: number;
-  displayName: string;
+  userid: number;
+  displayname: string;
 }
 
 export interface Permissions {

@@ -85,8 +85,8 @@ app.post("/signup", async (req: Request, res: Response): Promise<any> => {
   let account: Account = {
     username,
     password,
-    userID: 2,
-    displayName: username,
+    userid: 2,
+    displayname: username,
   };
   await addNewAccountToDatabase(account);
   return res.status(200).send(account);
@@ -98,10 +98,9 @@ app.post("/login", async (req: Request, res: Response): Promise<any> => {
     "SELECT * FROM public.users WHERE username = $1 AND password = $2",
     [usr, psw]
   );
-
   const acc = await result.one();
   if (acc === undefined) {
-    return res.status(400).send("Could not find account");
+    return res.status(400).send("Incorrect Username/Password");
   }
   if (psw === acc.password) {
     console.log(
@@ -111,7 +110,7 @@ app.post("/login", async (req: Request, res: Response): Promise<any> => {
         " " +
         new Date().toLocaleTimeString()
     );
-    return res.status(200).send({ displayname: acc.displayName });
+    return res.status(200).send({ displayname: acc.displayname });
   } else {
     return res.status(401).send("Incorrect Username/Password");
   }
