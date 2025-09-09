@@ -52,7 +52,7 @@ async function isServerOnline() {
     },
   })
     .then((res) => {
-      if (res.ok) {
+      if (res.status == 200) {
         return true;
       } else {
       }

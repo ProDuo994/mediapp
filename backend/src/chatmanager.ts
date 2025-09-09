@@ -19,7 +19,6 @@ const levels = {
   http: 3,
   log: 4,
 };
-
 const logger = winston.createLogger({
   level: "info",
   format: winston.format.json(),
@@ -28,25 +27,15 @@ const logger = winston.createLogger({
 });
 const PORT: number = 3000;
 let client: Client;
-
-(async () => {
+async () => {
   try {
-    client = await connect({
-      user: "postgres",
-      password: "postgres",
-      database: "mediapp",
-    });
+    client = await connect({ user: "postgres", password: "postgres", database: "mediapp" });
   } catch {
     logger.error("Could not connect to SQL Database @ chatmanager:30");
   }
-})();
+};
 
-function binarySearch<Sortable>(
-  arr: Sortable[],
-  low: number,
-  high: number,
-  toFind: Sortable
-) {
+function binarySearch<Sortable>(arr: Sortable[], low: number, high: number, toFind: Sortable) {
   if (high >= low) {
     let mid = low + Math.floor((high - low) / 2);
     if (arr[mid] == toFind) return mid;
@@ -56,25 +45,23 @@ function binarySearch<Sortable>(
   return null;
 }
 
-async function getUserFromID(id: number) {
-  const query = client.query<Account>(
-    "SELECT * FROM public.users WHERE userid=" + id
-  );
-  return query.first();
+async function getUserFromID(id: number): Promise<ResultIterator<Account>> {
+  try {
+    const query = await client.query("SELECT * FROM public.users WHERE userid=" + id + ";");
+    return query.rows[0];
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
 }
 
-async function findAccountInDatabase(
-  username: string
-): Promise<Account | void> {
+async function findAccountInDatabase(username: string): Promise<Account | void> {
   if (!username) {
     logger.error("Username not provided");
     return undefined;
   }
-  const res = await client.query<Account>(
-    `SELECT ${username} FROM public.users`
-  );
-  const account = res.rows.di;
-  return res;
+  const res = await client.query<Account>(`SELECT ${username} FROM public.users`);
+  return res.rows[0];
 }
 
 app.post("/signup", async (req: Request, res: Response): Promise<any> => {
@@ -121,36 +108,28 @@ app.post("/addFreind", async (req: Request, res: Response): Promise<any> => {
   if (usr == null || friendName == null) {
     return res.status(400).send("Please add all arguments");
   }
-  const freind = client.query<Account>(
-    `SELECT ${friendName} FROM public.users`
-  );
+  const query = client.query<Account>(`SELECT ${friendName} FROM public.users`);
+  const freind = query.first();
   if (freind === undefined) {
     return res.status(404).send("Could not find account");
   }
   return res.status(200).send(freind);
 });
 
-app.post(
-  "/createChannel",
-  async (req: Request, res: Response): Promise<any> => {
-    let cName = req.body.channelName;
-    let cDes = req.body.channelDes;
-    let cOwner = req.body.channelOwner;
-    if (cName == null || cDes == null || cOwner == null) {
-      return res.status(400).send("Please add all arguments");
-    }
-    await client.query(
-      "INSERT INTO channels (channelName, channelDes, ChannelOwner) VALUES ($1, $2, $3)",
-      [cName, cDes, cOwner]
-    );
+app.post("/createChannel", async (req: Request, res: Response): Promise<any> => {
+  let cName = req.body.channelName;
+  let cDes = req.body.channelDes;
+  let cOwner = req.body.channelOwner;
+  if (cName == null || cDes == null || cOwner == null) {
+    return res.status(400).send("Please add all arguments");
   }
-);
+  await client.query(
+    "INSERT INTO channels (channelName, channelDes, ChannelOwner) VALUES ($1, $2, $3)",
+    [cName, cDes, cOwner]
+  );
+});
 
-function formatMessage(
-  sender: string,
-  message: string,
-  timesent: number
-): Message {
+function formatMessage(sender: string, message: string, timesent: number): Message {
   return {
     sender,
     message,
@@ -160,22 +139,26 @@ function formatMessage(
 
 app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
   const { sender, message, isGroup } = req.body;
-  const account = await getUserFromID(sender);
-  if (!sender || !message || !account) {
-    logger.error("All args not provided");
+  const account: Account = await getUserFromID(sender);
+  if (sender === undefined || message === undefined || account === undefined) {
+    logger.error("All args not provided chatmanager:169");
+    console.log(`${sender}, ${message}, ${isGroup}`);
     return res.status(400).send("All args not provided");
   }
-  const username = account.username;
-  if (username == undefined) {
+  if (account == null) {
+    return res.status(400).send("Account = null");
+  }
+  const username: string = account;
+  if (!username) {
     logger.error("Could not find the required args (username)/chatmanager:160");
     return res.status(404).send("Could not find database");
   }
   const acc: Account | void = await findAccountInDatabase(username);
-  if (!acc || typeof acc !== "object" || !acc.displayName) {
+  if (!acc || typeof acc !== "object") {
     logger.error("ERROR: Could not send message @ chatmanager:137");
     return res.status(404).send("Could not find account");
   }
-  const fullMessage = formatMessage(acc.displayName, message, Date.now());
+  const fullMessage = formatMessage(acc.displayname, message, Date.now());
   console.log(
     `${fullMessage.sender}: ${
       fullMessage.message
@@ -196,11 +179,7 @@ app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
   }
 });
 
-async function updateSettings(
-  oldServerName: string,
-  serverDes: string,
-  isVisible: boolean
-) {
+async function updateSettings(oldServerName: string, serverDes: string, isVisible: boolean) {
   let groupMembers: Profile[] = [];
   let groupToUpdate: Group = {
     groupName: oldServerName,
@@ -210,7 +189,6 @@ async function updateSettings(
     owner: undefined,
     members: groupMembers,
   };
-
   return groupToUpdate;
 }
 
@@ -239,13 +217,8 @@ function findServerInDatabase(id: number) {
   }
 }
 
-async function getServerMemberUsernames(
-  serverID: number
-): Promise<string | null> {
-  const members = client.query<Account>(
-    "SELECT * FROM public.users WHERE serverID = ",
-    [serverID]
-  );
+async function getServerMemberUsernames(serverID: number): Promise<string | null> {
+  const members = client.query<Account>("SELECT * FROM public.users WHERE serverID = ", [serverID]);
   if (!members) {
     logger.error("Members not found for the given server ID");
     return null;
@@ -288,20 +261,13 @@ app.get("/getChatID", async (req: Request, res: Response): Promise<any> => {
   return res.status(200).send({ chatID });
 });
 
-app.get(
-  `/getChannelMessageServer`,
-  async (req: Request, res: Response): Promise<any> => {
-    const serverid = req.query["serverid"];
-    let server = await client.query(
-      "SELECT * FROM public.messages WHERE senderid=" + serverid
-    );
-    if (!server) {
-      return res
-        .status(401)
-        .send("Server not defined in arguments chatmanager:341");
-    }
+app.get(`/getChannelMessageServer`, async (req: Request, res: Response): Promise<any> => {
+  const serverid = req.query["serverid"];
+  let server = await client.query("SELECT * FROM public.messages WHERE senderid=" + serverid);
+  if (!server) {
+    return res.status(401).send("Server not defined in arguments chatmanager:341");
   }
-);
+});
 
 app.get("/server", async (req: Request, res: Response): Promise<any> => {
   const serverID: number | undefined = Number(req.query["serverID"]);
@@ -318,7 +284,7 @@ app.post("/test", (_req: Request, res: Response) => {
 
 async function addNewAccountToDatabase(newAccount: Account) {
   const res = await client.query<Account>(
-    `INSERT INTO users (displayname, username, password) VALUES ("${newAccount.displayName}", "${newAccount.username}", "${newAccount.userID}")`
+    `INSERT INTO users (displayname, username, password) VALUES ("${newAccount.displayname}", "${newAccount.username}", "${newAccount.userid}")`
   );
 }
 

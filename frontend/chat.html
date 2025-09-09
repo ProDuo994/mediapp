@@ -42,23 +42,12 @@
           <h5>Channel Name:</h5>
           <input name="name" id="channelname" />
           <button type="submit">Add</button>
-          <button
-            type="button"
-            class="closeChannelDialog"
-            id="closeChannelDialog"
-          >
-            Close
-          </button>
+          <button type="button" class="closeChannelDialog" id="closeChannelDialog">Close</button>
         </form>
       </div>
     </dialog>
     <dialog class="uploadImageGUI" id="uploadImageGUI">
-      <input
-        type="file"
-        name="File:"
-        id=""
-        accept=".jpeg, .jpg, .png, .svg, .gif"
-      />
+      <input type="file" name="File:" id="" accept=".jpeg, .jpg, .png, .svg, .gif" />
       <button id="closeUploadGui">Close</button>
       <img src="" />
     </dialog>
@@ -69,13 +58,7 @@
       <form>
         <h1>Settings</h1>
         <h4>Channel Name</h4>
-        <input
-          autocomplete="off"
-          required
-          type="text"
-          name="name"
-          id="channelNameBox"
-        />
+        <input autocomplete="off" required type="text" name="name" id="channelNameBox" />
         <h4>Channel Description</h4>
         <input autocomplete="off" type="text" name="des" id="chanelDesBox" />
         <br />
@@ -137,10 +120,7 @@
       <div class="mainArea" id="mainarea">
         <div class="channelHeader" id="channelHeader">
           <h2 id="channelHeaderText">Channel Name</h2>
-          <h4
-            style="font-weight: lighter; padding-right: 250px"
-            id="channelDesText"
-          >
+          <h4 style="font-weight: lighter; padding-right: 250px" id="channelDesText">
             <i>Channel Description</i>
           </h4>
           <button class="channelSettings" id="channelSettings">Settings</button>
@@ -200,10 +180,12 @@
       };
 
       window.onload = () => {
-        channel1Button.addEventListener("click", (event) => {});
-        channel2Button.addEventListener("click", (event) => {
-          openChannel(2);
-        });
+        const channelList = document.getElementById("channelList");
+        for (let i = 0; i < channelList.children.length; i++) {
+          channelList.children[i].addEventListener("click", (event) => {
+            openChannel(i);
+          });
+        }
       };
     </script>
     <script src="chat.js"></script>
