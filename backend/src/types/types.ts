@@ -54,6 +54,9 @@ export interface Database {
   };
 }
 
-export interface Folder {
-  files: {};
+export interface ServerSettings {
+  serverName: string;
+  serverDes: string;
+  isVisible: boolean;
+  canMessage: boolean;
 }

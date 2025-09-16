@@ -101,16 +101,13 @@ function createChat(name, des) {
 }
 
 function getChatID(name) {
-  return fetch(
-    `${server}/getChatID?${new URLSearchParams({ chatName: name })}`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Content-Type-Options": "nosniff",
-      },
-    }
-  ).then((res) => {
+  return fetch(`${server}/getChatID?${new URLSearchParams({ chatName: name })}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Content-Type-Options": "nosniff",
+    },
+  }).then((res) => {
     res.json().then((json) => {
       let chatID = json.chatID;
       return chatID;
@@ -164,10 +161,7 @@ function updateSettingsEndpoint(serverName, serverDes, isVisible, canMessage) {
       "X-Content-Type-Options": "nosniff",
     },
     body: JSON.stringify({
-      serverName,
-      serverDes,
-      isVisible,
-      canMessage,
+      servername,
     }),
   });
 }
@@ -198,11 +192,7 @@ function pollMessages(serverID) {
       const channel1Messages = server1["Channel 1"].messages;
       if (channel1Messages.length > lastAmountOfMessages) {
         for (const message of channel1Messages) {
-          createAndAppend(
-            "p",
-            messageViewBox,
-            message.username + ": " + message.message
-          );
+          createAndAppend("p", messageViewBox, message.username + ": " + message.message);
         }
         lastAmountOfMessages = channel1Messages.length;
       }

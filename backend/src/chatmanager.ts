@@ -1,8 +1,8 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
-import { Client, connect, Result, ResultIterator } from "ts-postgres";
+import { Client, connect, ResultIterator } from "ts-postgres";
 import bcrypt from "bcrypt";
-import { Group, Account, Message, Database, Profile } from "./types/types";
+import { Group, Account, Message, Profile, ServerSettings } from "./types/types";
 import winston from "winston";
 const app = express();
 app.use(express.json());
@@ -12,13 +12,6 @@ app.use(
     credentials: true,
   })
 );
-const levels = {
-  error: 0,
-  warn: 1,
-  info: 2,
-  http: 3,
-  log: 4,
-};
 const logger = winston.createLogger({
   level: "info",
   format: winston.format.json(),
@@ -35,17 +28,7 @@ async () => {
   }
 };
 
-function binarySearch<Sortable>(arr: Sortable[], low: number, high: number, toFind: Sortable) {
-  if (high >= low) {
-    let mid = low + Math.floor((high - low) / 2);
-    if (arr[mid] == toFind) return mid;
-    if (arr[mid] > toFind) return binarySearch(arr, low, mid - 1, toFind);
-    return binarySearch(arr, mid + 1, high, toFind);
-  }
-  return null;
-}
-
-async function getUserFromID(id: number): Promise<ResultIterator<Account>> {
+async function getUserFromID(id: number): Promise<ResultIterator<Account | null>> {
   try {
     const query = await client.query("SELECT * FROM public.users WHERE userid=" + id + ";");
     return query.rows[0];
@@ -85,7 +68,7 @@ app.post("/login", async (req: Request, res: Response): Promise<any> => {
     "SELECT * FROM public.users WHERE username = $1 AND password = $2",
     [usr, psw]
   );
-  const acc = await result.one();
+  const acc: Account = await result.one();
   if (acc === undefined) {
     return res.status(400).send("Incorrect Username/Password");
   }
@@ -108,8 +91,10 @@ app.post("/addFreind", async (req: Request, res: Response): Promise<any> => {
   if (usr == null || friendName == null) {
     return res.status(400).send("Please add all arguments");
   }
-  const query = client.query<Account>(`SELECT ${friendName} FROM public.users`);
-  const freind = query.first();
+  const query = client.query<Account>(
+    `SELECT * FROM public.users WHERE displayname = ` + friendName
+  );
+  const freind: Account = query.first();
   if (freind === undefined) {
     return res.status(404).send("Could not find account");
   }
@@ -164,57 +149,41 @@ app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
       fullMessage.message
     } @ ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`
   );
-  if (isGroup === true) {
+  if (isGroup) {
     return res.status(200).send("Group message received");
-  } else {
-    let SQLMessage: Message = {
-      sender: fullMessage.sender,
-      message: fullMessage.message,
-      timesent: fullMessage.timesent,
-    };
-    const result = client.query<Account>(
-      `INSERT INTO messages (sender, message, timesent) VALUES (${SQLMessage.sender}, ${SQLMessage.message}, ${SQLMessage.timesent})`
-    );
-    return res.status(200).send(result);
   }
+  let SQLMessage: Message = {
+    sender: fullMessage.sender,
+    message: fullMessage.message,
+    timesent: fullMessage.timesent,
+  };
+  const result = client.query<Account>(
+    `INSERT INTO messages (sender, message, timesent) VALUES (${SQLMessage.sender}, ${SQLMessage.message}, ${SQLMessage.timesent})`
+  );
+  return res.status(200);
 });
 
-async function updateSettings(oldServerName: string, serverDes: string, isVisible: boolean) {
-  let groupMembers: Profile[] = [];
-  let groupToUpdate: Group = {
-    groupName: oldServerName,
-    groupDescription: serverDes,
-    isPublic: isVisible,
-    id: 1,
-    owner: undefined,
-    members: groupMembers,
-  };
-  return groupToUpdate;
-}
+async function updateSettings(serverSettings: ServerSettings, servername: string) {}
 
 app.post("/updateSettings", async (req: Request, res: Response) => {
-  let serverName = req.body.serverName;
-  let serverDes = req.body.serverDes;
-  let isVisible = req.body.isVisible;
-  let canMessage = req.body.canMessage;
-  await updateSettings(serverName, serverDes, isVisible);
+  const servername: string = req.body.servername;
+  const serverSettings: ServerSettings = {
+    serverName: req.body.serverName,
+    serverDes: req.body.serverDes,
+    isVisible: req.body.isVisible,
+    canMessage: req.body.canMessage,
+  };
+  await updateSettings(serverSettings, servername);
   res.status(200).send("Settings updated");
 });
 
 function findServerInDatabase(id: number) {
-  const server: Group = {
-    groupName: "",
-    groupDescription: "",
-    members: [],
-    owner: undefined,
-    isPublic: false,
-    id: id,
-  };
-  if (server) {
-    return server;
-  } else {
+  const query = client.query("SELECT * FROM public.servers WHERE serverid=" + id);
+  const server = query.first();
+  if (server == undefined) {
     return null;
   }
+  return server;
 }
 
 async function getServerMemberUsernames(serverID: number): Promise<string | null> {
@@ -226,10 +195,10 @@ async function getServerMemberUsernames(serverID: number): Promise<string | null
   return members.toString();
 }
 
-async function getServerData(serverID: number): Promise<string | undefined> {
+async function getServerData(serverID: number): Promise<string | null> {
   if (!serverID) {
     logger.error("Must provide serverID");
-    return;
+    return null;
   }
   let data = await getServerMemberUsernames(serverID);
   if (data == null) {
@@ -257,7 +226,8 @@ app.post("/createServer", async (req: Request, res: Response): Promise<any> => {
 
 app.get("/getChatID", async (req: Request, res: Response): Promise<any> => {
   const chatName = req.query["chatName"] as string;
-  const chatID = 0;
+  const query = client.query("SELECT serverid FROM public servers WHERE servername=" + chatName);
+  const chatID = query.first();
   return res.status(200).send({ chatID });
 });
 
