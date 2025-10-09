@@ -81,9 +81,8 @@ app.post("/login", async (req: Request, res: Response): Promise<any> => {
         new Date().toLocaleTimeString()
     );
     return res.status(200).send({ displayname: acc.displayname });
-  } else {
-    return res.status(401).send("Incorrect Username/Password");
   }
+  return res.status(401).send("Incorrect Username/Password");
 });
 
 app.post("/addFreind", async (req: Request, res: Response): Promise<any> => {
@@ -112,6 +111,7 @@ app.post("/createChannel", async (req: Request, res: Response): Promise<any> => 
     "INSERT INTO channels (channelName, channelDes, ChannelOwner) VALUES ($1, $2, $3)",
     [cName, cDes, cOwner]
   );
+  return res.status(200).send("Channel created");
 });
 
 function formatMessage(sender: string, message: string, timesent: number): Message {

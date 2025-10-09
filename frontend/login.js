@@ -31,13 +31,12 @@ function login(username, password) {
           "Invalid username or password.";
         loginButton.disabled = false;
       }
-    })
-    .catch((err) => {
+    }).catch((err) => {
       console.error(err);
       loginButton.disabled = false;
       if (
         window.location.href === "http://127.0.0.1:5500/frontend/index.html"
-      ) {
+      ){
         alert("Internal Error Occurred. Please try again later.");
       }
     });
@@ -54,10 +53,8 @@ async function isServerOnline() {
     .then((res) => {
       if (res.status == 200) {
         return true;
-      } else {
       }
-    })
-    .catch(() => {
+    }).catch(() => {
       return false;
     });
 }
