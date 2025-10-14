@@ -19,14 +19,18 @@ const logger = winston.createLogger({
   transports: [new winston.transports.Console()],
 });
 const PORT: number = 3000;
+
 let client: Client;
-async () => {
+
+async function setupClient() {
   try {
     client = await connect({ user: "postgres", password: "postgres", database: "mediapp" });
   } catch {
     logger.error("Could not connect to SQL Database @ chatmanager:30");
   }
-};
+}
+
+setupClient();
 
 async function getUserFromID(id: number): Promise<ResultIterator<Account | null>> {
   try {
@@ -64,11 +68,12 @@ app.post("/signup", async (req: Request, res: Response): Promise<any> => {
 
 app.post("/login", async (req: Request, res: Response): Promise<any> => {
   let { usr, psw } = req.body;
-  const result = client.query<Account>(
-    "SELECT * FROM public.users WHERE username = $1 AND password = $2",
+  const result = await client.query<Account>(
+    "SELECT * FROM public.users WHERE username = $1 AND password = $2", // Failure Line
     [usr, psw]
   );
-  const acc: Account = await result.one();
+  const acc: Account = [...result][0];
+  console.log([...result]);
   if (acc === undefined) {
     return res.status(400).send("Incorrect Username/Password");
   }

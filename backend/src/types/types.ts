@@ -20,10 +20,10 @@ export interface Message {
 }
 
 export interface Account {
-  username: string;
-  password: string;
   userid: number;
   displayname: string;
+  username: string;
+  password: string;
 }
 
 export interface Permissions {
