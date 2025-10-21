@@ -109,13 +109,16 @@ async function getServerIDNames(userid: number) {
   const serverIdQuery = await client.query<number>(
     "SELECT serverid FROM public.serversjoineduser WHERE userid=" + userid
   );
-  for (const id in serverIdQuery) {
-    map.set(id);
+  for (const serverId in serverIdQuery) {
+    const serverName = await client.query<string>(
+      "SELECT servername FROM public.servers WHERE serverid=" + serverId
+    );
+    map.set(serverId, serverName);
   }
-  return map;
+  return JSON.stringify(Object.fromEntries(map));
 }
 app.get("/getServerIDNames", async (req: Request, res: Response) => {
-  const serverIDName = getServerIDNames(req.body.serverID);
+  const serverIDName = await getServerIDNames(req.body.serverID);
   res.send(serverIDName);
 });
 
