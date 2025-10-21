@@ -120,7 +120,6 @@ function getMessageFromServer(serverID) {
     if (serverID == undefined) {
       return reject("Must provide serverID");
     }
-
     fetch(
       `${server}/getChatMessages?${new URLSearchParams({
         serverID: serverID,
@@ -310,7 +309,18 @@ messageBoxInput.addEventListener("keydown", (event) => {
 
 function addFriend(userID) {}
 
+function getServerIDNames(userID) {
+  fetch("/getServerIDNames"),
+    {
+      method: "GET",
+      body: {
+        userID,
+      },
+    };
+}
+
 window.onload = async () => {
+  getServerIDNames();
   currentChatMessages = document.getElementById("channelMessages").children;
   let id = await getChatID(ServerName);
   if (id == undefined) {

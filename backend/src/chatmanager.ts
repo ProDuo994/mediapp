@@ -69,11 +69,10 @@ app.post("/signup", async (req: Request, res: Response): Promise<any> => {
 app.post("/login", async (req: Request, res: Response): Promise<any> => {
   let { usr, psw } = req.body;
   const result = await client.query<Account>(
-    "SELECT * FROM public.users WHERE username = $1 AND password = $2", // Failure Line
+    "SELECT * FROM public.users WHERE username = $1 AND password = $2",
     [usr, psw]
   );
   const acc: Account = [...result][0];
-  console.log([...result]);
   if (acc === undefined) {
     return res.status(400).send("Incorrect Username/Password");
   }
@@ -103,6 +102,21 @@ app.post("/addFreind", async (req: Request, res: Response): Promise<any> => {
     return res.status(404).send("Could not find account");
   }
   return res.status(200).send(freind);
+});
+
+async function getServerIDNames(userid: number) {
+  let map = new Map();
+  const serverIdQuery = await client.query<number>(
+    "SELECT serverid FROM public.serversjoineduser WHERE userid=" + userid
+  );
+  for (const id in serverIdQuery) {
+    map.set(id);
+  }
+  return map;
+}
+app.get("/getServerIDNames", async (req: Request, res: Response) => {
+  const serverIDName = getServerIDNames(req.body.serverID);
+  res.send(serverIDName);
 });
 
 app.post("/createChannel", async (req: Request, res: Response): Promise<any> => {
@@ -231,8 +245,10 @@ app.post("/createServer", async (req: Request, res: Response): Promise<any> => {
 
 app.get("/getChatID", async (req: Request, res: Response): Promise<any> => {
   const chatName = req.query["chatName"] as string;
-  const query = client.query("SELECT serverid FROM public servers WHERE servername=" + chatName);
-  const chatID = query.first();
+  const query = await client.query<Number>(
+    `SELECT serverid FROM public.servers WHERE servername=${chatName};`
+  );
+  const chatID = [...query][0];
   return res.status(200).send({ chatID });
 });
 

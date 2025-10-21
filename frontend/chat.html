@@ -171,14 +171,12 @@
       const messageViewBox = document.getElementById("channelMessages");
       const channel1Button = document.getElementById("channel1");
       const channel2Button = document.getElementById("channel2");
-
       const createAndAppend = (element, parent, content) => {
         const newElement = document.createElement(element);
         newElement.innerText = content;
         parent.appendChild(newElement);
         return newElement;
       };
-
       window.onload = () => {
         const channelList = document.getElementById("channelList");
         for (let i = 0; i < channelList.children.length; i++) {
