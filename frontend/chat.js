@@ -107,6 +107,9 @@ function getChatID(name) {
       "Content-Type": "application/json",
       "X-Content-Type-Options": "nosniff",
     },
+    body: {
+      userid:
+    }
   }).then((res) => {
     res.json().then((json) => {
       let chatID = json.chatID;

@@ -4,6 +4,7 @@ import { Client, connect, ResultIterator } from "ts-postgres";
 import bcrypt from "bcrypt";
 import { Group, Account, Message, Profile, ServerSettings } from "./types/types";
 import winston from "winston";
+const session = require("express-session");
 const app = express();
 app.use(express.json());
 app.use(
@@ -12,6 +13,17 @@ app.use(
     credentials: true,
   })
 );
+app.use(
+  session({
+    secret: "anyrandomtext",
+    resave: false,
+  })
+);
+
+BigInt.prototype.toJSON = function () {
+  return Number(this);
+};
+
 const logger = winston.createLogger({
   level: "info",
   format: winston.format.json(),
@@ -68,22 +80,14 @@ app.post("/signup", async (req: Request, res: Response): Promise<any> => {
 
 app.post("/login", async (req: Request, res: Response): Promise<any> => {
   let { usr, psw } = req.body;
-  const result = await client.query<Account>(
-    "SELECT * FROM public.users WHERE username = $1 AND password = $2",
-    [usr, psw]
-  );
+  const result = await client.query<Account>("SELECT * FROM public.users WHERE username = $1 AND password = $2", [usr, psw]);
   const acc: Account = [...result][0];
   if (acc === undefined) {
     return res.status(400).send("Incorrect Username/Password");
   }
   if (psw === acc.password) {
-    console.log(
-      usr +
-        " logged in at " +
-        new Date().toLocaleDateString() +
-        " " +
-        new Date().toLocaleTimeString()
-    );
+    console.log(usr + " logged in at " + new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString());
+    req.session.user = { id: acc.userid };
     return res.status(200).send({ displayname: acc.displayname });
   }
   return res.status(401).send("Incorrect Username/Password");
@@ -94,9 +98,7 @@ app.post("/addFreind", async (req: Request, res: Response): Promise<any> => {
   if (usr == null || friendName == null) {
     return res.status(400).send("Please add all arguments");
   }
-  const query = client.query<Account>(
-    `SELECT * FROM public.users WHERE displayname = ` + friendName
-  );
+  const query = client.query<Account>(`SELECT * FROM public.users WHERE displayname = ` + friendName);
   const freind: Account = query.first();
   if (freind === undefined) {
     return res.status(404).send("Could not find account");
@@ -106,13 +108,9 @@ app.post("/addFreind", async (req: Request, res: Response): Promise<any> => {
 
 async function getServerIDNames(userid: number) {
   let map = new Map();
-  const serverIdQuery = await client.query<number>(
-    "SELECT serverid FROM public.serversjoineduser WHERE userid=" + userid
-  );
+  const serverIdQuery = await client.query<number>("SELECT serverid FROM public.serversjoineduser WHERE userid=" + userid);
   for (const serverId in serverIdQuery) {
-    const serverName = await client.query<string>(
-      "SELECT servername FROM public.servers WHERE serverid=" + serverId
-    );
+    const serverName = await client.query<string>("SELECT servername FROM public.servers WHERE serverid=" + serverId);
     map.set(serverId, serverName);
   }
   return JSON.stringify(Object.fromEntries(map));
@@ -129,10 +127,7 @@ app.post("/createChannel", async (req: Request, res: Response): Promise<any> => 
   if (cName == null || cDes == null || cOwner == null) {
     return res.status(400).send("Please add all arguments");
   }
-  await client.query(
-    "INSERT INTO channels (channelName, channelDes, ChannelOwner) VALUES ($1, $2, $3)",
-    [cName, cDes, cOwner]
-  );
+  await client.query("INSERT INTO channels (channelName, channelDes, ChannelOwner) VALUES ($1, $2, $3)", [cName, cDes, cOwner]);
   return res.status(200).send("Channel created");
 });
 
@@ -166,11 +161,7 @@ app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
     return res.status(404).send("Could not find account");
   }
   const fullMessage = formatMessage(acc.displayname, message, Date.now());
-  console.log(
-    `${fullMessage.sender}: ${
-      fullMessage.message
-    } @ ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`
-  );
+  console.log(`${fullMessage.sender}: ${fullMessage.message} @ ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`);
   if (isGroup) {
     return res.status(200).send("Group message received");
   }
@@ -237,9 +228,7 @@ app.post("/createServer", async (req: Request, res: Response): Promise<any> => {
     return res.status(400).send("Chat name or chat description not provided.");
   }
   try {
-    await client.query<Group>(
-      `INSERT INTO servers ("servername", "serverdes", "serverowner") VALUES (${chatName}, ${chatDes}, ${chatOwner})`
-    );
+    await client.query<Group>(`INSERT INTO servers ("servername", "serverdes", "serverowner") VALUES (${chatName}, ${chatDes}, ${chatOwner})`);
   } catch (error) {
     logger.error(error);
     return res.status(500).send("Internal server error");
@@ -247,12 +236,7 @@ app.post("/createServer", async (req: Request, res: Response): Promise<any> => {
 });
 
 app.get("/getChatID", async (req: Request, res: Response): Promise<any> => {
-  const chatName = req.query["chatName"] as string;
-  const query = await client.query<Number>(
-    `SELECT serverid FROM public.servers WHERE servername=${chatName};`
-  );
-  const chatID = [...query][0];
-  return res.status(200).send({ chatID });
+  getServerIDNames();
 });
 
 app.get(`/getChannelMessageServer`, async (req: Request, res: Response): Promise<any> => {
