@@ -20,10 +20,6 @@ app.use(
   })
 );
 
-BigInt.prototype.toJSON = function () {
-  return Number(this);
-};
-
 const logger = winston.createLogger({
   level: "info",
   format: winston.format.json(),
@@ -87,7 +83,7 @@ app.post("/login", async (req: Request, res: Response): Promise<any> => {
   }
   if (psw === acc.password) {
     console.log(usr + " logged in at " + new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString());
-    req.session.user = { id: acc.userid };
+    req.session.user = { id: acc.userid.toString() };
     return res.status(200).send({ displayname: acc.displayname });
   }
   return res.status(401).send("Incorrect Username/Password");
