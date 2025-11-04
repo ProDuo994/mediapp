@@ -102,7 +102,8 @@ app.post("/addFreind", async (req: Request, res: Response): Promise<any> => {
   return res.status(200).send(freind);
 });
 
-async function getServerIDNames(userid: number) {
+async function getServerIDNames(req: Request) {
+  let userid: string = req.session.user;
   let map = new Map();
   const serverIdQuery = await client.query<number>("SELECT serverid FROM public.serversjoineduser WHERE userid=" + userid);
   for (const serverId in serverIdQuery) {
@@ -112,7 +113,7 @@ async function getServerIDNames(userid: number) {
   return JSON.stringify(Object.fromEntries(map));
 }
 app.get("/getServerIDNames", async (req: Request, res: Response) => {
-  const serverIDName = await getServerIDNames(req.body.serverID);
+  const serverIDName = await getServerIDNames(req);
   res.send(serverIDName);
 });
 

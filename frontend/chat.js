@@ -1,3 +1,6 @@
+const winston = require("winston");
+const { log } = require("winston");
+
 const server = "http://127.0.0.1:3000"; // localhost (do not change)
 const displayName = localStorage.getItem("displayName");
 if (!displayName) {
@@ -108,7 +111,7 @@ function getChatID(name) {
       "X-Content-Type-Options": "nosniff",
     },
     body: {
-      userid:
+      userid: 
     }
   }).then((res) => {
     res.json().then((json) => {
@@ -312,15 +315,25 @@ messageBoxInput.addEventListener("keydown", (event) => {
 
 function addFriend(userID) {}
 
-function getServerIDNames(userID) {
-  fetch("/getServerIDNames"),
+function updateServerChannelList(servers) {
+  let preAddedServers = []
+  for (let i=0; i < servers.length; i++) {
+    preAddedServers.push(`<li>${servers[i].serverName}</li>`)
+  }
+  document.getElementById("serverList").innerHTML = preAddedServers;
+  
+}
+
+function getServerIDNames() {
+  fetch("/getServerIDNames",
     {
       method: "GET",
-      body: {
-        userID,
-      },
-    };
+    })
+    .then ((res) => res.json().then((data) => {
+      updateServerChannelList(data.servers)
+    })).catch(console.error);
 }
+
 
 window.onload = async () => {
   getServerIDNames();
