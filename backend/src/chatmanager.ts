@@ -19,6 +19,7 @@ app.use(
     resave: false,
   })
 );
+app.set("trust proxy", 1);
 
 const logger = winston.createLogger({
   level: "info",
@@ -27,7 +28,6 @@ const logger = winston.createLogger({
   transports: [new winston.transports.Console()],
 });
 const PORT: number = 3000;
-
 let client: Client;
 
 async function setupClient() {
@@ -37,8 +37,13 @@ async function setupClient() {
     logger.error("Could not connect to SQL Database @ chatmanager:30");
   }
 }
-
 setupClient();
+
+async function addNewAccountToDatabase(newAccount: Account) {
+  const res = await client.query<Account>(
+    `INSERT INTO users (displayname, username, password) VALUES ("${newAccount.displayname}", "${newAccount.username}", "${newAccount.userid}")`
+  );
+}
 
 async function getUserFromID(id: number): Promise<ResultIterator<Account | null>> {
   try {
@@ -84,6 +89,7 @@ app.post("/login", async (req: Request, res: Response): Promise<any> => {
   if (psw === acc.password) {
     console.log(usr + " logged in at " + new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString());
     req.session.user = { id: acc.userid.toString() };
+    req.session.save();
     return res.status(200).send({ displayname: acc.displayname });
   }
   return res.status(401).send("Incorrect Username/Password");
@@ -103,13 +109,12 @@ app.post("/addFreind", async (req: Request, res: Response): Promise<any> => {
 });
 
 async function getServerIDNames(req: Request) {
+  // line 115 failes because req.session = undefined
   let userid: string = req.session.user;
   let map = new Map();
-  const serverIdQuery = await client.query<number>("SELECT serverid FROM public.serversjoineduser WHERE userid=" + userid);
-  for (const serverId in serverIdQuery) {
-    const serverName = await client.query<string>("SELECT servername FROM public.servers WHERE serverid=" + serverId);
-    map.set(serverId, serverName);
-  }
+  const serverId = await client.query<number>(`SELECT serverid FROM public.serversjoineduser WHERE userid=${userid}`).first();
+  const serverName = await client.query<string>(`SELECT servername FROM public.servers WHERE serverid=1`).first();
+  map.set(serverId, serverName);
   return JSON.stringify(Object.fromEntries(map));
 }
 app.get("/getServerIDNames", async (req: Request, res: Response) => {
@@ -147,7 +152,7 @@ app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
   if (account == null) {
     return res.status(400).send("Account = null");
   }
-  const username: string = account;
+  const username: string = account.username;
   if (!username) {
     logger.error("Could not find the required args (username)/chatmanager:160");
     return res.status(404).send("Could not find database");
@@ -174,7 +179,6 @@ app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
 });
 
 async function updateSettings(serverSettings: ServerSettings, servername: string) {}
-
 app.post("/updateSettings", async (req: Request, res: Response) => {
   const servername: string = req.body.servername;
   const serverSettings: ServerSettings = {
@@ -256,12 +260,6 @@ app.get("/server", async (req: Request, res: Response): Promise<any> => {
 app.post("/test", (_req: Request, res: Response) => {
   res.status(200).send("Server Is Running");
 });
-
-async function addNewAccountToDatabase(newAccount: Account) {
-  const res = await client.query<Account>(
-    `INSERT INTO users (displayname, username, password) VALUES ("${newAccount.displayname}", "${newAccount.username}", "${newAccount.userid}")`
-  );
-}
 
 app.get("/getChatMessages", async (req: Request, res: any) => {
   let serverID = req.query["serverID"] as any;
