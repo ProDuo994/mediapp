@@ -8,8 +8,7 @@
 body,
 html {
   height: 100%;
-  font-family: "Funnel Sans", "Gill Sans", "Gill Sans MT", Calibri,
-    "Trebuchet MS", sans-serif;
+  font-family: "Funnel Sans", "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
 }
 
 header {
@@ -194,7 +193,6 @@ body {
 }
 
 .serverMenu {
-  visibility: hidden;
   background-color: lightpink;
 }
 

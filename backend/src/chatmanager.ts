@@ -15,8 +15,10 @@ app.use(
 );
 app.use(
   session({
+    store: new (require("connect-pg-simple")(session))({}),
     secret: "anyrandomtext",
     resave: false,
+    cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 },
   })
 );
 app.set("trust proxy", 1);
@@ -45,7 +47,7 @@ async function addNewAccountToDatabase(newAccount: Account) {
   );
 }
 
-async function getUserFromID(id: number): Promise<ResultIterator<Account | null>> {
+async function getUserFromID(id: number): Promise<ResultIterator<Account> | null> {
   try {
     const query = await client.query("SELECT * FROM public.users WHERE userid=" + id + ";");
     return query.rows[0];
@@ -61,7 +63,7 @@ async function findAccountInDatabase(username: string): Promise<Account | void> 
     return undefined;
   }
   const res = await client.query<Account>(`SELECT ${username} FROM public.users`);
-  return res.rows[0];
+  return [...res][0];
 }
 
 app.post("/signup", async (req: Request, res: Response): Promise<any> => {
@@ -89,7 +91,7 @@ app.post("/login", async (req: Request, res: Response): Promise<any> => {
   if (psw === acc.password) {
     console.log(usr + " logged in at " + new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString());
     req.session.user = { id: acc.userid.toString() };
-    req.session.save();
+    //req.session.save();
     return res.status(200).send({ displayname: acc.displayname });
   }
   return res.status(401).send("Incorrect Username/Password");
@@ -112,14 +114,13 @@ async function getServerIDNames(req: Request) {
   // line 115 failes because req.session = undefined
   let userid: string = req.session.user;
   let map = new Map();
-  const serverId = await client.query<number>(`SELECT serverid FROM public.serversjoineduser WHERE userid=${userid}`).first();
-  const serverName = await client.query<string>(`SELECT servername FROM public.servers WHERE serverid=1`).first();
+  const serverId = [...(await client.query<string>(`SELECT serverid FROM public.serversjoineduser WHERE userid=${userid}`))][0];
+  const serverName = [...(await client.query<string>(`SELECT servername FROM public.servers WHERE serverid=1`))][0];
   map.set(serverId, serverName);
   return JSON.stringify(Object.fromEntries(map));
 }
 app.get("/getServerIDNames", async (req: Request, res: Response) => {
-  const serverIDName = await getServerIDNames(req);
-  res.send(serverIDName);
+  res.send(await getServerIDNames(req));
 });
 
 app.post("/createChannel", async (req: Request, res: Response): Promise<any> => {
@@ -134,11 +135,7 @@ app.post("/createChannel", async (req: Request, res: Response): Promise<any> => 
 });
 
 function formatMessage(sender: string, message: string, timesent: number): Message {
-  return {
-    sender,
-    message,
-    timesent,
-  };
+  return { sender, message, timesent };
 }
 
 app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
@@ -237,7 +234,7 @@ app.post("/createServer", async (req: Request, res: Response): Promise<any> => {
 });
 
 app.get("/getChatID", async (req: Request, res: Response): Promise<any> => {
-  getServerIDNames();
+  getServerIDNames(req);
 });
 
 app.get(`/getChannelMessageServer`, async (req: Request, res: Response): Promise<any> => {
