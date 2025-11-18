@@ -107,6 +107,7 @@ function getChatID(name) {
       "Content-Type": "application/json",
       "X-Content-Type-Options": "nosniff",
     },
+    credentials: "include",
   }).then((res) => {
     res.json().then((json) => {
       let chatID = json.chatID;
@@ -320,6 +321,7 @@ function updateServerChannelList(servers) {
 function getServerIDNames() {
   fetch(`${server}/getServerIDNames`, {
     method: "GET",
+    credentials: "include",
   })
     .then((res) =>
       res.json().then((data) => {

@@ -19,6 +19,7 @@ function login(username, password) {
       usr: username,
       psw: password,
     }),
+    credentials: "include",
   })
     .then((res) => {
       console.log("received response");
@@ -27,16 +28,14 @@ function login(username, password) {
           processLogin(data.displayname, 0);
         });
       } else {
-        document.getElementById("errorMessage").innerText =
-          "Invalid username or password.";
+        document.getElementById("errorMessage").innerText = "Invalid username or password.";
         loginButton.disabled = false;
       }
-    }).catch((err) => {
+    })
+    .catch((err) => {
       console.error(err);
       loginButton.disabled = false;
-      if (
-        window.location.href === "http://127.0.0.1:5500/frontend/index.html"
-      ){
+      if (window.location.href === "http://127.0.0.1:5500/frontend/index.html") {
         alert("Internal Error Occurred. Please try again later.");
       }
     });
@@ -54,7 +53,8 @@ async function isServerOnline() {
       if (res.status == 200) {
         return true;
       }
-    }).catch(() => {
+    })
+    .catch(() => {
       return false;
     });
 }
@@ -67,10 +67,7 @@ window.onload = () => {
   }
   loginForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    login(
-      document.getElementById("usrname").value,
-      document.getElementById("pswrd").value
-    );
+    login(document.getElementById("usrname").value, document.getElementById("pswrd").value);
   });
 };
 

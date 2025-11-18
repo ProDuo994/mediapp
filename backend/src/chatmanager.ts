@@ -7,21 +7,30 @@ import winston from "winston";
 const session = require("express-session");
 const app = express();
 app.use(express.json());
+app.set("trust proxy", 1);
 app.use(
   cors({
-    origin: "*",
+    origin: "http://127.0.0.1:5500",
     credentials: true,
   })
 );
 app.use(
   session({
-    store: new (require("connect-pg-simple")(session))({}),
+    name: "session",
+    store: new (require("connect-pg-simple")(session))({
+      conString: "postgres://postgres:postgres@127.0.0.1:5432/mediapp",
+      createTableIfMissing: true,
+    }),
     secret: "anyrandomtext",
     resave: false,
-    cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 },
+    saveUninitialized: true,
+    cookie: {
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      secure: false,
+    },
   })
 );
-app.set("trust proxy", 1);
 
 const logger = winston.createLogger({
   level: "info",
@@ -91,7 +100,7 @@ app.post("/login", async (req: Request, res: Response): Promise<any> => {
   if (psw === acc.password) {
     console.log(usr + " logged in at " + new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString());
     req.session.user = { id: acc.userid.toString() };
-    //req.session.save();
+    req.session.save();
     return res.status(200).send({ displayname: acc.displayname });
   }
   return res.status(401).send("Incorrect Username/Password");
@@ -112,7 +121,9 @@ app.post("/addFreind", async (req: Request, res: Response): Promise<any> => {
 
 async function getServerIDNames(req: Request) {
   // line 115 failes because req.session = undefined
-  let userid: string = req.session.user;
+  //we forgot .id
+  console.log(req.session);
+  let userid: string = req.session.user.id;
   let map = new Map();
   const serverId = [...(await client.query<string>(`SELECT serverid FROM public.serversjoineduser WHERE userid=${userid}`))][0];
   const serverName = [...(await client.query<string>(`SELECT servername FROM public.servers WHERE serverid=1`))][0];
