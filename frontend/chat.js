@@ -68,7 +68,8 @@ function sendMessage(sender, message, isGroup) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ sender, message, isGroup }),
+      credentials: "include",
+      body: JSON.stringify({ message, isGroup }),
     })
       .then((res) => {
         if (res.status === 200) {

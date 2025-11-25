@@ -56,10 +56,11 @@ async function addNewAccountToDatabase(newAccount: Account) {
   );
 }
 
-async function getUserFromID(id: number): Promise<ResultIterator<Account> | null> {
+async function getUserFromID(id: number): Promise<Account | null> {
   try {
-    const query = await client.query("SELECT * FROM public.users WHERE userid=" + id + ";");
-    return query.rows[0];
+    console.log(id);
+    const query = await client.query<Account>("SELECT * FROM public.users WHERE userid=" + id + ";");
+    return [...query][0];
   } catch (e) {
     console.error(e);
     return null;
@@ -150,11 +151,11 @@ function formatMessage(sender: string, message: string, timesent: number): Messa
 }
 
 app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
-  const { sender, message, isGroup } = req.body;
-  const account: Account = await getUserFromID(sender);
+  const { message, isGroup } = req.body;
+  const sender = req.session.user.id;
+  const account: Account | null = await getUserFromID(sender);
   if (sender === undefined || message === undefined || account === undefined) {
     logger.error("All args not provided chatmanager:169");
-    console.log(`${sender}, ${message}, ${isGroup}`);
     return res.status(400).send("All args not provided");
   }
   if (account == null) {
@@ -165,23 +166,19 @@ app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
     logger.error("Could not find the required args (username)/chatmanager:160");
     return res.status(404).send("Could not find database");
   }
-  const acc: Account | void = await findAccountInDatabase(username);
-  if (!acc || typeof acc !== "object") {
-    logger.error("ERROR: Could not send message @ chatmanager:137");
-    return res.status(404).send("Could not find account");
-  }
-  const fullMessage = formatMessage(acc.displayname, message, Date.now());
+  const fullMessage = formatMessage(account.displayname, message, Date.now());
   console.log(`${fullMessage.sender}: ${fullMessage.message} @ ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`);
   if (isGroup) {
     return res.status(200).send("Group message received");
   }
   let SQLMessage: Message = {
-    sender: fullMessage.sender,
+    sender: sender,
     message: fullMessage.message,
     timesent: fullMessage.timesent,
   };
-  const result = client.query<Account>(
-    `INSERT INTO messages (sender, message, timesent) VALUES (${SQLMessage.sender}, ${SQLMessage.message}, ${SQLMessage.timesent})`
+  console.log(`${SQLMessage.sender} ${SQLMessage.message} ${SQLMessage.timesent}`);
+  const result = client.query(
+    `INSERT INTO messages (senderid, messagecontent, channelid, timesent) VALUES (${SQLMessage.sender}, '${SQLMessage.message}', 1, '${SQLMessage.timesent}')`
   );
   return res.status(200);
 });
