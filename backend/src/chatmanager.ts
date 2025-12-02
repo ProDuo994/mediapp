@@ -58,7 +58,6 @@ async function addNewAccountToDatabase(newAccount: Account) {
 
 async function getUserFromID(id: number): Promise<Account | null> {
   try {
-    console.log(id);
     const query = await client.query<Account>("SELECT * FROM public.users WHERE userid=" + id + ";");
     return [...query][0];
   } catch (e) {
@@ -121,15 +120,16 @@ app.post("/addFreind", async (req: Request, res: Response): Promise<any> => {
 });
 
 async function getServerIDNames(req: Request) {
-  // line 115 failes because req.session = undefined
-  //we forgot .id
-  console.log(req.session);
   let userid: string = req.session.user.id;
   let map = new Map();
-  const serverId = [...(await client.query<string>(`SELECT serverid FROM public.serversjoineduser WHERE userid=${userid}`))][0];
-  const serverName = [...(await client.query<string>(`SELECT servername FROM public.servers WHERE serverid=1`))][0];
-  map.set(serverId, serverName);
-  return JSON.stringify(Object.fromEntries(map));
+  const serverId = [...(await client.query(`SELECT serverid FROM public.serversjoineduser WHERE userid=${userid}`))];
+  const serverName = [...(await client.query(`SELECT servername FROM public.servers WHERE serverid=1`))];
+  let servers = [];
+  for (let i = 0; i < serverId.length; i++) {
+    servers[i] = { serverid: serverId[i]["serverid"].toString(), serverName: serverName[i]["servername"] };
+  }
+  let serverIdsAndNames = { servers: servers };
+  return JSON.stringify(serverIdsAndNames);
 }
 app.get("/getServerIDNames", async (req: Request, res: Response) => {
   res.send(await getServerIDNames(req));
@@ -166,7 +166,7 @@ app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
     logger.error("Could not find the required args (username)/chatmanager:160");
     return res.status(404).send("Could not find database");
   }
-  const fullMessage = formatMessage(account.displayname, message, Date.now());
+  const fullMessage: Message = formatMessage(account.displayname, message, Date.now());
   console.log(`${fullMessage.sender}: ${fullMessage.message} @ ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`);
   if (isGroup) {
     return res.status(200).send("Group message received");
@@ -176,7 +176,6 @@ app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
     message: fullMessage.message,
     timesent: fullMessage.timesent,
   };
-  console.log(`${SQLMessage.sender} ${SQLMessage.message} ${SQLMessage.timesent}`);
   const result = client.query(
     `INSERT INTO messages (senderid, messagecontent, channelid, timesent) VALUES (${SQLMessage.sender}, '${SQLMessage.message}', 1, '${SQLMessage.timesent}')`
   );
@@ -242,7 +241,7 @@ app.post("/createServer", async (req: Request, res: Response): Promise<any> => {
 });
 
 app.get("/getChatID", async (req: Request, res: Response): Promise<any> => {
-  getServerIDNames(req);
+  return res.status(200).send(getServerIDNames(req));
 });
 
 app.get(`/getChannelMessageServer`, async (req: Request, res: Response): Promise<any> => {
@@ -267,12 +266,12 @@ app.post("/test", (_req: Request, res: Response) => {
 });
 
 app.get("/getChatMessages", async (req: Request, res: any) => {
-  let serverID = req.query["serverID"] as any;
+  let serverID = req.body["serverID"];
   if (serverID == undefined) {
-    return res.status(400).send("Must provide server ID chatManager:364");
+    return res.status(400).send("Must provide server ID: chatManager:364");
   }
-  const serverIDStr = Array.isArray(serverID) ? serverID[0] : serverID;
-  return res.status(200).send(findServerInDatabase(serverID));
+  let request = client.query<Message>("SELECT * FROM messages WHERE channelid=" + serverID);
+  return res.status(200).send(request);
 });
 
 async function startServer() {

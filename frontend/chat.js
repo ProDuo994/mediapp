@@ -102,7 +102,7 @@ function createChat(name, des) {
 }
 
 function getChatID(name) {
-  return fetch(`${server}/getChatID?${new URLSearchParams({ chatName: name })}`, {
+  return fetch(`${server}/getChatID`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -174,23 +174,23 @@ function createChannel(chatName, channelName) {
 }
 
 function pollMessages(serverID) {
-  fetch(
-    `${server}/getChatMessages?${new URLSearchParams({
-      serverID: serverID,
-    })}`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Content-Type-Options": "nosniff",
-      },
-    }
-  );
-  getChannelMessageServer(serverID)
+  console.log("Polling...");
+  fetch(`${server}/getChatMessages`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Content-Type-Options": "nosniff",
+    },
+    body: {
+      serverID: 1,
+    },
+  });
+  getChannelMessageServer(1)
     .then((res) => res.json())
     .then((res) => {
       const server1 = res["SERVER 1"];
       const channel1Messages = server1["Channel 1"].messages;
+      console.log(channel1Messages);
       if (channel1Messages.length > lastAmountOfMessages) {
         for (const message of channel1Messages) {
           createAndAppend("p", messageViewBox, message.username + ": " + message.message);
