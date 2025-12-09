@@ -175,17 +175,19 @@ function createChannel(chatName, channelName) {
 
 function pollMessages(serverID) {
   console.log("Polling...");
-  fetch(`${server}/getChatMessages`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Content-Type-Options": "nosniff",
-    },
-    body: {
-      serverID: 1,
-    },
-  });
-  getChannelMessageServer(1)
+  fetch(
+    `${server}/getChatMessages?${new URLSearchParams({
+      serverID: serverID,
+    })}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Content-Type-Options": "nosniff",
+      },
+    }
+  )
+    //getChannelMessageServer(1)
     .then((res) => res.json())
     .then((res) => {
       const server1 = res["SERVER 1"];
@@ -205,7 +207,6 @@ function pollMessages(serverID) {
       }
       return null;
     });
-  saveServerData(getChatID(ServerName));
 }
 
 const addChannelButton = document.getElementById("channelAdd");
@@ -339,5 +340,5 @@ window.onload = async () => {
   if (id == undefined) {
     console.error("ServerID = undefined");
   }
-  const msgReceiveInteval = setInterval(() => pollMessages(0), 1000);
+  const msgReceiveInteval = setInterval(() => pollMessages(1), 1000);
 };

@@ -3,7 +3,7 @@ import cors from "cors";
 import { Client, connect, ResultIterator } from "ts-postgres";
 import bcrypt from "bcrypt";
 import { Group, Account, Message, Profile, ServerSettings } from "./types/types";
-import winston from "winston";
+import winston, { Logger } from "winston";
 const session = require("express-session");
 const app = express();
 app.use(express.json());
@@ -32,7 +32,7 @@ app.use(
   })
 );
 
-const logger = winston.createLogger({
+const logger: Logger = winston.createLogger({
   level: "info",
   format: winston.format.json(),
   defaultMeta: { service: "user-service" },
@@ -51,9 +51,7 @@ async function setupClient() {
 setupClient();
 
 async function addNewAccountToDatabase(newAccount: Account) {
-  const res = await client.query<Account>(
-    `INSERT INTO users (displayname, username, password) VALUES ("${newAccount.displayname}", "${newAccount.username}", "${newAccount.userid}")`
-  );
+  const res = await client.query<Account>(`INSERT INTO users (displayname, username, password) VALUES ("${newAccount.displayname}", "${newAccount.username}", "${newAccount.userid}")`);
 }
 
 async function getUserFromID(id: number): Promise<Account | null> {
@@ -176,9 +174,7 @@ app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
     message: fullMessage.message,
     timesent: fullMessage.timesent,
   };
-  const result = client.query(
-    `INSERT INTO messages (senderid, messagecontent, channelid, timesent) VALUES (${SQLMessage.sender}, '${SQLMessage.message}', 1, '${SQLMessage.timesent}')`
-  );
+  const result = client.query(`INSERT INTO messages (senderid, messagecontent, channelid, timesent) VALUES (${SQLMessage.sender}, '${SQLMessage.message}', 1, '${SQLMessage.timesent}')`);
   return res.status(200);
 });
 
@@ -266,11 +262,12 @@ app.post("/test", (_req: Request, res: Response) => {
 });
 
 app.get("/getChatMessages", async (req: Request, res: any) => {
-  let serverID = req.body["serverID"];
+  let serverID = req.query["serverID"];
   if (serverID == undefined) {
     return res.status(400).send("Must provide server ID: chatManager:364");
   }
-  let request = client.query<Message>("SELECT * FROM messages WHERE channelid=" + serverID);
+  let request = await client.query<Message>("SELECT * FROM messages WHERE channelid=" + serverID);
+  console.log(request);
   return res.status(200).send(request);
 });
 
