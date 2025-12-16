@@ -4,6 +4,7 @@ import { Client, connect, ResultIterator } from "ts-postgres";
 import bcrypt from "bcrypt";
 import { Group, Account, Message, Profile, ServerSettings } from "./types/types";
 import winston, { Logger } from "winston";
+import { checkPrime } from "crypto";
 const session = require("express-session");
 const app = express();
 app.use(express.json());
@@ -119,7 +120,6 @@ app.post("/addFreind", async (req: Request, res: Response): Promise<any> => {
 
 async function getServerIDNames(req: Request) {
   let userid: string = req.session.user.id;
-  let map = new Map();
   const serverId = [...(await client.query(`SELECT serverid FROM public.serversjoineduser WHERE userid=${userid}`))];
   const serverName = [...(await client.query(`SELECT servername FROM public.servers WHERE serverid=1`))];
   let servers = [];
@@ -147,6 +147,17 @@ app.post("/createChannel", async (req: Request, res: Response): Promise<any> => 
 function formatMessage(sender: string, message: string, timesent: number): Message {
   return { sender, message, timesent };
 }
+
+app.post("/getChannelIDNames", async (req: Request, res: Response): Promise<any> => {
+  let serverid: string = req.body.serverid;
+  const channels = [...(await client.query(`SELECT channelid, channelname FROM channels WHERE serverid=${serverid}`))];
+  for (let i = 0; i < channels.length; i++) {
+    channels[i]['channelid'] = channels[i].['channelid'].toString()
+  }
+  let channelIdsAndNames = { channels: channels };
+  res.status(200).send(channelIdsAndNames)
+  return JSON.stringify(channelIdsAndNames);
+});
 
 app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
   const { message, isGroup } = req.body;
@@ -266,8 +277,12 @@ app.get("/getChatMessages", async (req: Request, res: any) => {
   if (serverID == undefined) {
     return res.status(400).send("Must provide server ID: chatManager:364");
   }
-  let request = await client.query<Message>("SELECT * FROM messages WHERE channelid=" + serverID);
-  console.log(request);
+  let request: Message[] = [...(await client.query<Message>("SELECT senderid, messagecontent, timesent FROM messages WHERE channelid=" + serverID))];
+  request.forEach((element) => {
+    element.senderid = element.senderid.toString();
+    element.messagecontent = element.messagecontent.toString();
+    element.timesent = element.timesent.toString();
+  });
   return res.status(200).send(request);
 });
 

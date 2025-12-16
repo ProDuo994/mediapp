@@ -5,6 +5,8 @@ if (!displayName) {
 }
 let currentChatMessages;
 const chatMessagesFromServer = "";
+const lastMessageReceived = new Map();
+let serversJoinedByUser;
 let ServerName = "server";
 let messageHistory = [];
 let lastAmountOfMessages = getLastMesssagesLength();
@@ -328,6 +330,29 @@ function getServerIDNames() {
     .then((res) =>
       res.json().then((data) => {
         updateServerChannelList(data.servers);
+        serversJoinedByUser = data.servers;
+      })
+    )
+    .catch(console.error);
+}
+
+function getChannelIDNames(serverid) {
+  fetch(`${server}/getChannelIDNames`, {
+    method: "GET",
+    credentials: "include",
+    body: {
+      serverid,
+    },
+  })
+    .then((res) =>
+      res.json().then((data) => {
+        updateChannelList(data.channels);
+        //TODO: loop through channels anad create init value in the map we had before
+        data.channels.forEach((channel) => {
+          if (lastMessageReceived.has(channel.channelid)) {
+            return;
+          }
+        });
       })
     )
     .catch(console.error);
@@ -335,10 +360,7 @@ function getServerIDNames() {
 
 window.onload = async () => {
   getServerIDNames();
+  getChannelIDNames(serversJoinedByUser[0].serverid);
   currentChatMessages = document.getElementById("channelMessages").children;
-  let id = await getChatID(ServerName);
-  if (id == undefined) {
-    console.error("ServerID = undefined");
-  }
   const msgReceiveInteval = setInterval(() => pollMessages(1), 1000);
 };

@@ -14,9 +14,9 @@ export interface Profile {
 }
 
 export interface Message {
-  sender: string;
-  message: string;
-  timesent: number;
+  senderid: string;
+  messagecontent: string;
+  timesent: string;
 }
 
 export interface Account {
