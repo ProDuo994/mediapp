@@ -15,8 +15,9 @@ export interface Profile {
 
 export interface Message {
   senderid: string;
+  displayname: string;
   messagecontent: string;
-  timesent: string;
+  timesent: number;
 }
 
 export interface Account {
@@ -42,7 +43,7 @@ export interface Database {
       sender: string;
       message: string;
       timesent: number;
-    }
+    },
   ];
   servers: {
     [serverName: string]: {

@@ -4,7 +4,7 @@ import { Client, connect, ResultIterator } from "ts-postgres";
 import bcrypt from "bcrypt";
 import { Group, Account, Message, Profile, ServerSettings } from "./types/types";
 import winston, { Logger } from "winston";
-import { checkPrime } from "crypto";
+import 'express-session'; 
 const session = require("express-session");
 const app = express();
 app.use(express.json());
@@ -152,7 +152,7 @@ app.post("/getChannelIDNames", async (req: Request, res: Response): Promise<any>
   let serverid: string = req.body.serverid;
   const channels = [...(await client.query(`SELECT channelid, channelname FROM channels WHERE serverid=${serverid}`))];
   for (let i = 0; i < channels.length; i++) {
-    channels[i]['channelid'] = channels[i].['channelid'].toString()
+    channels[i]['channelid'] = channels[i].['channelid'].toString(); //Error converting BigInt to String
   }
   let channelIdsAndNames = { channels: channels };
   res.status(200).send(channelIdsAndNames)
@@ -176,16 +176,17 @@ app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
     return res.status(404).send("Could not find database");
   }
   const fullMessage: Message = formatMessage(account.displayname, message, Date.now());
-  console.log(`${fullMessage.sender}: ${fullMessage.message} @ ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`);
+  console.log(`${fullMessage.displayname}: ${fullMessage.messagecontent} @ ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`);
   if (isGroup) {
     return res.status(200).send("Group message received");
   }
   let SQLMessage: Message = {
-    sender: sender,
-    message: fullMessage.message,
+    senderid: sender,
+    displayname: sender,
+    messagecontent: fullMessage.messagecontent,
     timesent: fullMessage.timesent,
   };
-  const result = client.query(`INSERT INTO messages (senderid, messagecontent, channelid, timesent) VALUES (${SQLMessage.sender}, '${SQLMessage.message}', 1, '${SQLMessage.timesent}')`);
+  const result = client.query(`INSERT INTO messages (senderid, messagecontent, channelid, timesent) VALUES (${SQLMessage.senderid}, '${SQLMessage.messagecontent}', 1, '${SQLMessage.timesent}')`);
   return res.status(200);
 });
 
@@ -281,7 +282,7 @@ app.get("/getChatMessages", async (req: Request, res: any) => {
   request.forEach((element) => {
     element.senderid = element.senderid.toString();
     element.messagecontent = element.messagecontent.toString();
-    element.timesent = element.timesent.toString();
+    element.timesent = element.timesent;
   });
   return res.status(200).send(request);
 });
