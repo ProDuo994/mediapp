@@ -6,7 +6,7 @@ if (!displayName) {
 let currentChatMessages;
 const chatMessagesFromServer = "";
 const lastMessageReceived = new Map();
-let serversJoinedByUser;
+let serversJoinedByUser = [1];
 let ServerName = "server";
 let messageHistory = [];
 let lastAmountOfMessages = getLastMesssagesLength();
@@ -29,7 +29,7 @@ function getChannelMessageServer(id) {
         "Content-Type": "application/json",
         "X-Content-Type-Options": "nosniff",
       },
-    }
+    },
   ).then((res) => {
     res.json().then((json) => (chatMessagesFromServer = json));
     return chatMessagesFromServer;
@@ -43,7 +43,7 @@ function getServer(serverID) {
   fetch(
     `${server}/server${new URLSearchParams({
       serverID,
-    })}`
+    })}`,
   )
     .then((res) => {
       if (res.ok) {
@@ -134,7 +134,7 @@ function getMessageFromServer(serverID) {
           "Content-Type": "application/json",
           "X-Content-Type-Options": "nosniff",
         },
-      }
+      },
     )
       .then((res) => {
         res
@@ -149,11 +149,6 @@ function getMessageFromServer(serverID) {
       });
   });
   return getMessagePromise;
-}
-
-function getMessagesFromClient() {
-  let messages = [{ sender: displayName, message: "Hi" }];
-  return messages;
 }
 
 function updateSettingsEndpoint(serverName, serverDes, isVisible, canMessage) {
@@ -187,7 +182,7 @@ function pollMessages(serverID) {
         "Content-Type": "application/json",
         "X-Content-Type-Options": "nosniff",
       },
-    }
+    },
   )
     //getChannelMessageServer(1)
     .then((res) => res.json())
@@ -331,14 +326,14 @@ function getServerIDNames() {
       res.json().then((data) => {
         updateServerChannelList(data.servers);
         serversJoinedByUser = data.servers;
-      })
+      }),
     )
     .catch(console.error);
 }
 
 function getChannelIDNames(serverid) {
   fetch(`${server}/getChannelIDNames`, {
-    method: "GET",
+    method: "POST",
     credentials: "include",
     body: {
       serverid,
@@ -350,10 +345,11 @@ function getChannelIDNames(serverid) {
         //TODO: loop through channels anad create init value in the map we had before
         data.channels.forEach((channel) => {
           if (lastMessageReceived.has(channel.channelid)) {
+            console.log("Channels " + data.channels);
             return;
           }
         });
-      })
+      }),
     )
     .catch(console.error);
 }

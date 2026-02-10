@@ -4,7 +4,8 @@ import { Client, connect, ResultIterator } from "ts-postgres";
 import bcrypt from "bcrypt";
 import { Group, Account, Message, Profile, ServerSettings } from "./types/types";
 import winston, { Logger } from "winston";
-import 'express-session'; 
+import "express-session";
+import { channel } from "diagnostics_channel";
 const session = require("express-session");
 const app = express();
 app.use(express.json());
@@ -13,7 +14,7 @@ app.use(
   cors({
     origin: "http://127.0.0.1:5500",
     credentials: true,
-  })
+  }),
 );
 app.use(
   session({
@@ -30,7 +31,7 @@ app.use(
       httpOnly: true,
       secure: false,
     },
-  })
+  }),
 );
 
 const logger: Logger = winston.createLogger({
@@ -145,17 +146,19 @@ app.post("/createChannel", async (req: Request, res: Response): Promise<any> => 
 });
 
 function formatMessage(sender: string, message: string, timesent: number): Message {
-  return { sender, message, timesent };
+  return { senderid, message, timesent };
 }
 
 app.post("/getChannelIDNames", async (req: Request, res: Response): Promise<any> => {
+  // The reason it is failing is becasue serverid below is undefined. Checked by console.logging.
   let serverid: string = req.body.serverid;
-  const channels = [...(await client.query(`SELECT channelid, channelname FROM channels WHERE serverid=${serverid}`))];
-  for (let i = 0; i < channels.length; i++) {
-    channels[i]['channelid'] = channels[i].['channelid'].toString(); //Error converting BigInt to String
-  }
+  let channels = [...(await client.query("SELECT channelid, channelname FROM channels WHERE serverid=" + serverid))];
+  console.log("Channels" + channels);
+  // for (let i = 0; i < channels.length; i++) {
+  //   channels[i]['channelid'] = channels[i].['channelid'].toString(); //Error converting BigInt to String
+  // }
   let channelIdsAndNames = { channels: channels };
-  res.status(200).send(channelIdsAndNames)
+  res.status(200).send(channelIdsAndNames);
   return JSON.stringify(channelIdsAndNames);
 });
 
@@ -278,13 +281,17 @@ app.get("/getChatMessages", async (req: Request, res: any) => {
   if (serverID == undefined) {
     return res.status(400).send("Must provide server ID: chatManager:364");
   }
-  let request: Message[] = [...(await client.query<Message>("SELECT senderid, messagecontent, timesent FROM messages WHERE channelid=" + serverID))];
-  request.forEach((element) => {
-    element.senderid = element.senderid.toString();
-    element.messagecontent = element.messagecontent.toString();
-    element.timesent = element.timesent;
-  });
-  return res.status(200).send(request);
+  try {
+    let request: Message[] = [...(await client.query<Message>("SELECT senderid, messagecontent, timesent FROM messages WHERE channelid=" + serverID))];
+    request.forEach((element) => {
+      element.senderid = element.senderid.toString();
+      element.messagecontent = element.messagecontent.toString();
+      element.timesent = element.timesent;
+    });
+    return res.status(200).send(request);
+  } catch (error) {
+    return res.status(200).send("No new messages");
+  }
 });
 
 async function startServer() {
