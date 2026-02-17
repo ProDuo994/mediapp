@@ -1,11 +1,10 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
-import { Client, connect, ResultIterator } from "ts-postgres";
+import { Client, connect } from "ts-postgres";
 import bcrypt from "bcrypt";
-import { Group, Account, Message, Profile, ServerSettings } from "./types/types";
+import { Group, Account, Message, ServerSettings } from "./types/types";
 import winston, { Logger } from "winston";
 import "express-session";
-import { channel } from "diagnostics_channel";
 const session = require("express-session");
 const app = express();
 app.use(express.json());
@@ -151,7 +150,8 @@ function formatMessage(sender: string, message: string, timesent: number): Messa
 
 app.post("/getChannelIDNames", async (req: Request, res: Response): Promise<any> => {
   // The reason it is failing is becasue serverid below is undefined. Checked by console.logging.
-  let serverid: string = req.body.serverid;
+  console.log(req.body.serverid);
+  let serverid = req.body.serverid;
   let channels = [...(await client.query("SELECT channelid, channelname FROM channels WHERE serverid=" + serverid))];
   console.log("Channels" + channels);
   // for (let i = 0; i < channels.length; i++) {

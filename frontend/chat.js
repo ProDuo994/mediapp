@@ -335,9 +335,7 @@ function getChannelIDNames(serverid) {
   fetch(`${server}/getChannelIDNames`, {
     method: "POST",
     credentials: "include",
-    body: {
-      serverid,
-    },
+    body: JSON.stringify({ serverid: 1 }),
   })
     .then((res) =>
       res.json().then((data) => {
@@ -356,7 +354,7 @@ function getChannelIDNames(serverid) {
 
 window.onload = async () => {
   getServerIDNames();
-  getChannelIDNames(serversJoinedByUser[0].serverid);
+  getChannelIDNames(1);
   currentChatMessages = document.getElementById("channelMessages").children;
   const msgReceiveInteval = setInterval(() => pollMessages(1), 1000);
 };
