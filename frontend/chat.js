@@ -332,6 +332,7 @@ function getServerIDNames() {
 }
 
 function getChannelIDNames(serverid) {
+  console.log("Running function");
   fetch(`${server}/getChannelIDNames`, {
     method: "POST",
     credentials: "include",

@@ -144,22 +144,19 @@ app.post("/createChannel", async (req: Request, res: Response): Promise<any> => 
   return res.status(200).send("Channel created");
 });
 
-function formatMessage(sender: string, message: string, timesent: number): Message {
-  return { senderid, message, timesent };
+function formatMessage(senderid: number, sender: string, messagecontent: string, timesent: number): Message {
+  return { sender, messagecontent, timesent };
 }
 
 app.post("/getChannelIDNames", async (req: Request, res: Response): Promise<any> => {
-  // The reason it is failing is becasue serverid below is undefined. Checked by console.logging.
-  console.log(req.body.serverid);
-  let serverid = req.body.serverid;
-  let channels = [...(await client.query("SELECT channelid, channelname FROM channels WHERE serverid=" + serverid))];
-  console.log("Channels" + channels);
-  // for (let i = 0; i < channels.length; i++) {
-  //   channels[i]['channelid'] = channels[i].['channelid'].toString(); //Error converting BigInt to String
-  // }
-  let channelIdsAndNames = { channels: channels };
-  res.status(200).send(channelIdsAndNames);
-  return JSON.stringify(channelIdsAndNames);
+  console.log("Server ID: " + req.body.serverid);
+  let serverid = 1; //req.body.serverid;
+  let channelid = Number([...(await client.query("SELECT channelid FROM channels WHERE serverid=" + serverid))]);
+  let channelname = JSON.stringify([...(await client.query("SELECT channelname FROM channels WHERE serverid=" + serverid))]);
+  console.log("Channel ID: " + channelid);
+  console.log("Channel Name: " + channelname);
+  res.status(200).send();
+  return;
 });
 
 app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
