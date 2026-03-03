@@ -15,10 +15,7 @@ function login(username, password) {
       "Content-Type": "application/json",
       "X-Content-Type-Options": "nosniff",
     },
-    body: JSON.stringify({
-      usr: username,
-      psw: password,
-    }),
+    body: JSON.stringify({ usr: username, psw: password }),
     credentials: "include",
   })
     .then((res) => {
@@ -61,7 +58,7 @@ async function isServerOnline() {
 
 window.onload = () => {
   const loginForm = document.getElementById("loginForm");
-  loginButton = document.getElementById("loginBtn");
+  const loginButton = document.getElementById("loginBtn");
   if (isServerOnline() === false) {
     return window.alert("Server is not reachable. Please try again later.");
   }

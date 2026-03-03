@@ -1,7 +1,6 @@
 /*BACKEND:
 Detect when a client sends a message then send that message to all other accounts in the server:
 Requirements:
-Multi-Account Login (DONE)
 Save messages to database
 Update messages to all clients
 

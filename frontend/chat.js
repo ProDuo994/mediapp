@@ -9,11 +9,7 @@ const lastMessageReceived = new Map();
 let serversJoinedByUser = [1];
 let ServerName = "server";
 let messageHistory = [];
-let lastAmountOfMessages = getLastMesssagesLength();
-
-function getLastMesssagesLength() {
-  return messageHistory.length;
-}
+let lastAmountOfMessages = messageHistory.length;
 
 function getChannelMessageServer(id) {
   if (!id) {
@@ -205,7 +201,6 @@ function pollMessages(serverID) {
       return null;
     });
 }
-
 const addChannelButton = document.getElementById("channelAdd");
 const channelSettingsButton = document.getElementById("channelSettings");
 const newChannelDialog = document.getElementById("newChannelDialog");
@@ -236,7 +231,6 @@ let visible = true;
 let canMessage = true;
 
 function selectServer(num) {}
-
 function selectChannel(num) {}
 
 function getOldServerSettings() {
@@ -331,6 +325,8 @@ function getServerIDNames() {
     .catch(console.error);
 }
 
+function updateChannelList(channels) {}
+
 function getChannelIDNames(serverid) {
   console.log("Running function");
   fetch(`${server}/getChannelIDNames`, {
@@ -352,7 +348,6 @@ function getChannelIDNames(serverid) {
     )
     .catch(console.error);
 }
-
 window.onload = async () => {
   getServerIDNames();
   getChannelIDNames(1);

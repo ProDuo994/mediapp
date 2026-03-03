@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
-import { Client, connect } from "ts-postgres";
+import { Client, connect, ResultIterator } from "ts-postgres";
 import bcrypt from "bcrypt";
 import { Group, Account, Message, ServerSettings } from "./types/types";
 import winston, { Logger } from "winston";
@@ -41,7 +41,6 @@ const logger: Logger = winston.createLogger({
 });
 const PORT: number = 3000;
 let client: Client;
-
 async function setupClient() {
   try {
     client = await connect({ user: "postgres", password: "postgres", database: "mediapp" });
@@ -152,16 +151,15 @@ app.post("/getChannelIDNames", async (req: Request, res: Response): Promise<any>
   console.log("Server ID: " + req.body.serverid);
   let serverid = 1; //req.body.serverid;
   let channelid = Number([...(await client.query("SELECT channelid FROM channels WHERE serverid=" + serverid))]);
-  let channelname = JSON.stringify([...(await client.query("SELECT channelname FROM channels WHERE serverid=" + serverid))]);
+  let channelname = [...(await client.query("SELECT channelname FROM channels WHERE serverid=" + serverid))];
   console.log("Channel ID: " + channelid);
   console.log("Channel Name: " + channelname);
-  res.status(200).send();
-  return;
+  return res.status(200).send({ channelid, channelname });
 });
 
 app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
   const { message, isGroup } = req.body;
-  const sender = req.session.user.id;
+  const sender: number = req.session.user.id;
   const account: Account | null = await getUserFromID(sender);
   if (sender === undefined || message === undefined || account === undefined) {
     logger.error("All args not provided chatmanager:169");
@@ -175,7 +173,7 @@ app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
     logger.error("Could not find the required args (username)/chatmanager:160");
     return res.status(404).send("Could not find database");
   }
-  const fullMessage: Message = formatMessage(account.displayname, message, Date.now());
+  const fullMessage: Message = formatMessage(account.userid, account.displayname, message, Date.now());
   console.log(`${fullMessage.displayname}: ${fullMessage.messagecontent} @ ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`);
   if (isGroup) {
     return res.status(200).send("Group message received");
@@ -202,15 +200,6 @@ app.post("/updateSettings", async (req: Request, res: Response) => {
   await updateSettings(serverSettings, servername);
   res.status(200).send("Settings updated");
 });
-
-function findServerInDatabase(id: number) {
-  const query = client.query("SELECT * FROM public.servers WHERE serverid=" + id);
-  const server = query.first();
-  if (server == undefined) {
-    return null;
-  }
-  return server;
-}
 
 async function getServerMemberUsernames(serverID: number): Promise<string | null> {
   const members = client.query<Account>("SELECT * FROM public.users WHERE serverID = ", [serverID]);
@@ -281,7 +270,10 @@ app.get("/getChatMessages", async (req: Request, res: any) => {
   try {
     let request: Message[] = [...(await client.query<Message>("SELECT senderid, messagecontent, timesent FROM messages WHERE channelid=" + serverID))];
     request.forEach((element) => {
-      element.senderid = element.senderid.toString();
+      if (element.senderid == undefined) {
+        return res.status(400).send("Invalid Arguments /getChatMessages");
+      }
+      element.senderid = element.senderid;
       element.messagecontent = element.messagecontent.toString();
       element.timesent = element.timesent;
     });

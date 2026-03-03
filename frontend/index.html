@@ -1,14 +1,11 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <title>Login | MEDIAPP</title>
     <!-- <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" /> -->
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="upgrade-insecure-requests"
-    />
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
     <script type="text/javascript" src="login.js"></script>
     <link rel="icon" type="image/x-icon" href="images/favicon.png" />
     <link rel="stylesheet" href="style.css" />
@@ -20,33 +17,17 @@
     </noscript>
     <h1 style="text-align: center">MEDIAPP</h1>
     <br />
-    <p id="errorMessage" style="color: red;"></p>
+    <p id="errorMessage" style="color: red"></p>
     <form id="loginForm" class="loginForm">
       <h2 class="loginTitle">Login</h2>
-      <input
-        type="text"
-        name="Username"
-        id="usrname"
-        class="usrname"
-        autocomplete="username"
-        placeholder="Username"
-      />
+      <input type="text" name="Username" id="usrname" class="usrname" autocomplete="username" placeholder="Username" />
       <br />
-      <input
-        type="password"
-        name="Password"
-        id="pswrd"
-        class="pswrd"
-        autocomplete="current-password"
-        placeholder="Password"
-      />
+      <input type="password" name="Password" id="pswrd" class="pswrd" autocomplete="current-password" placeholder="Password" />
       <br />
       <input type="submit" id="loginBtn" class="loginBtn" value="Login" />
       <button id="signupBtn" class="loginBtn">Sign Up</button>
       <br />
-      <label>
-        <input type="checkbox" checked="checked" name="remember" /> Remember me
-      </label>
+      <label> <input type="checkbox" checked="checked" name="remember" /> Remember me </label>
     </form>
   </body>
 </html>
