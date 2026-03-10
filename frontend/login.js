@@ -1,5 +1,5 @@
 const server = "http://127.0.0.1:3000";
-let loginButton;
+let loginButton = document.getElementById("loginBtn");
 
 function processLogin(displayName, sessionToken) {
   localStorage.setItem("displayName", displayName);

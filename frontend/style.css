@@ -155,7 +155,9 @@ body {
 }
 
 .messageBox {
+  width: 100%;
   height: 5%;
+  border-radius: 15px;
 }
 
 .messageBox input {
@@ -319,13 +321,19 @@ dialog {
 .serverSettingsDialogForm {
   margin: auto;
   align-self: center;
+  background-color: yellow;
+}
+
+#burgerMenuForm {
+  margin: auto;
+  background-color: yellow;
 }
 
 .serverAdd:hover {
   cursor: pointer;
 }
 
-.newChannelDialogForm {
+#newChannelDialogForm {
   align-self: center;
   margin: auto;
 }

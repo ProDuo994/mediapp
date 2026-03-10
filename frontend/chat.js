@@ -225,6 +225,8 @@ const serverFormName = document.getElementById("servername");
 const serverFormDes = document.getElementById("serverdes");
 const createServerButton = document.getElementById("createServerButton");
 const channelList = document.getElementById("channelList");
+const burgerMenu = document.getElementById("burgerMenu");
+const burgerButton = document.getElementById("burgerMenuButton");
 let channelName = "Test Server";
 let channelDes = "Test Description";
 let visible = true;
@@ -254,7 +256,13 @@ function updateChannelSettings() {
 }
 
 newServerButton.addEventListener("click", (event) => {
+  event.preventDefault();
   newServerDialog.showModal();
+});
+
+burgerButton.addEventListener("click", (event) => {
+  event.preventDefault();
+  burgerMenu.showModal();
 });
 
 createServerButton.addEventListener("click", (event) => {
@@ -349,6 +357,7 @@ function getChannelIDNames(serverid) {
     .catch(console.error);
 }
 window.onload = async () => {
+  serverSettingsGui.showModal();
   getServerIDNames();
   getChannelIDNames(1);
   currentChatMessages = document.getElementById("channelMessages").children;

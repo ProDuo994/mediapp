@@ -1,5 +1,8 @@
 {
 	"dependencies": {
 		"winston": "^3.17.0"
+	},
+	"devDependencies": {
+		"@types/express-session": "^1.18.2"
 	}
 }

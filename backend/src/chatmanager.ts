@@ -1,10 +1,19 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
-import { Client, connect, ResultIterator } from "ts-postgres";
+import { Client, connect } from "ts-postgres";
 import bcrypt from "bcrypt";
 import { Group, Account, Message, ServerSettings } from "./types/types";
 import winston, { Logger } from "winston";
 import "express-session";
+declare module "express-session" {
+  interface SessionData {
+    user?: {
+      id: number;
+      username: string;
+    };
+    userId?: number;
+  }
+}
 const session = require("express-session");
 const app = express();
 app.use(express.json());
@@ -97,7 +106,7 @@ app.post("/login", async (req: Request, res: Response): Promise<any> => {
   }
   if (psw === acc.password) {
     console.log(usr + " logged in at " + new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString());
-    req.session.user = { id: acc.userid.toString() };
+    req.session.user = { id: acc.userid };
     req.session.save();
     return res.status(200).send({ displayname: acc.displayname });
   }
