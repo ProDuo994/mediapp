@@ -318,15 +318,9 @@ dialog {
   align-self: center;
 }
 
-.serverSettingsDialogForm {
+.burgerMenuForm {
   margin: auto;
   align-self: center;
-  background-color: yellow;
-}
-
-#burgerMenuForm {
-  margin: auto;
-  background-color: yellow;
 }
 
 .serverAdd:hover {
@@ -336,6 +330,18 @@ dialog {
 #newChannelDialogForm {
   align-self: center;
   margin: auto;
+}
+
+.burgerMenuForm ul li a {
+  text-decoration: none;
+}
+
+.burgerMenuForm ul li {
+  list-style: none;
+}
+
+.burgerMenuForm ul li:hover {
+  background-color: magenta;
 }
 
 @media screen and (max-width: 600px) {

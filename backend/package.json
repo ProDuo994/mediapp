@@ -2,7 +2,7 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "chatmanager.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "cls && set NODE_ENV=dev && tsx watch src/chatmanager.ts"

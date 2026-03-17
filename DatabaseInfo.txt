@@ -4,10 +4,15 @@ Dump Database(Use in backend)(powershell): $env:PGPASSWORD = 'postgres'; pg_dump
                              (cmd): cmd  /V /C "set PGPASSWORD=postgres&& pg_dump -U postgres -w mediapp" > ./backend/database/db_backup.sql
                              (bash): PGPASSWORD=postgres; pg_dump -U postgres -w mediapp > ./backend/database/db_backup.sql
 
-Restore Database(Use at home to get the databasse. Use Dump to save before push): psql -U postgres -W postgres -X mediapp < ./backend/database/db_backup.sql
+Restore Database(Use at home to get the database. Use Dump to save before push): psql -U postgres -W postgres -X mediapp < ./backend/database/db_backup.sql
 
 Create Row in Users Table: INSERT INTO users (displayName, username, password) VALUES ('displayName', 'username', 'password')
 
 Read Database: SELECT * FROM users;
 
 Database Map:
+channels
+messages
+servers
+serversjoineduser
+sessionusers

@@ -158,7 +158,7 @@ function formatMessage(senderid: number, sender: string, messagecontent: string,
 
 app.post("/getChannelIDNames", async (req: Request, res: Response): Promise<any> => {
   console.log("Server ID: " + req.body.serverid);
-  let serverid = 1; //req.body.serverid;
+  let serverid = 1;
   let channelid = Number([...(await client.query("SELECT channelid FROM channels WHERE serverid=" + serverid))]);
   let channelname = [...(await client.query("SELECT channelname FROM channels WHERE serverid=" + serverid))];
   console.log("Channel ID: " + channelid);

@@ -217,7 +217,6 @@ const serverNameHeader = document.getElementById("servername");
 const channelNameHeader = document.getElementById("channelHeaderText");
 const channel1Header = document.getElementById("channel1");
 const channelDesHeader = document.getElementById("channelDesText");
-const menuButton = document.getElementById("menuIcon");
 const serverSettingsGui = document.getElementById("serverSettingsDialog");
 const newServerButton = document.getElementById("serverAdd");
 const newServerDialog = document.getElementById("newServerDialog");
@@ -294,10 +293,6 @@ channelSettingsClose.addEventListener("click", (event) => {
   event.preventDefault();
   channelSettingsGui.close();
 });
-menuButton.addEventListener("click", (event) => {
-  event.preventDefault();
-  serverSettingsGui.showModal();
-});
 
 messageBoxInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
@@ -357,7 +352,7 @@ function getChannelIDNames(serverid) {
     .catch(console.error);
 }
 window.onload = async () => {
-  serverSettingsGui.showModal();
+  //serverSettingsGui.showModal();
   getServerIDNames();
   getChannelIDNames(1);
   currentChatMessages = document.getElementById("channelMessages").children;
