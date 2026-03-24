@@ -126,6 +126,7 @@ body {
   display: flex;
   flex-direction: column;
   text-align: center;
+  border-radius: 10px;
 }
 
 .channelList a {
@@ -213,6 +214,7 @@ body {
 
 .loginBtn {
   background-color: lightpink;
+  border-radius: 10px;
 }
 
 .loginTitle {
@@ -307,6 +309,10 @@ dialog {
   text-align: center;
   padding-top: 100px;
   border-color: black;
+  background-color: rgb(138, 218, 191);
+  width: 30%;
+  margin: 50px auto;
+  border-radius: 10px;
 }
 
 .servername {
@@ -317,7 +323,12 @@ dialog {
   background-color: rgb(122, 191, 214);
   align-self: center;
 }
-
+.loginFeild {
+  border-radius: 10px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+}
 .burgerMenuForm {
   margin: auto;
   align-self: center;
@@ -342,6 +353,12 @@ dialog {
 
 .burgerMenuForm ul li:hover {
   background-color: magenta;
+}
+.memberList {
+  border-radius: 10px;
+}
+.messageBoxInput {
+  border-radius: 10px;
 }
 
 @media screen and (max-width: 600px) {

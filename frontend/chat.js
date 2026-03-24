@@ -1,4 +1,4 @@
-const server = "http://127.0.0.1:3000"; // localhost (do not change)
+const server = "http://127.0.0.1:3000";
 const displayName = localStorage.getItem("displayName");
 if (!displayName) {
   window.location.href = "index.html";
@@ -33,9 +33,7 @@ function getChannelMessageServer(id) {
 }
 
 function getServer(serverID) {
-  let returnedServerID;
-  let serverName;
-  let serverDes;
+  let returnedServerID, serverName, serverDes;
   fetch(
     `${server}/server${new URLSearchParams({
       serverID,
@@ -180,7 +178,6 @@ function pollMessages(serverID) {
       },
     },
   )
-    //getChannelMessageServer(1)
     .then((res) => res.json())
     .then((res) => {
       const server1 = res["SERVER 1"];
@@ -230,9 +227,6 @@ let channelName = "Test Server";
 let channelDes = "Test Description";
 let visible = true;
 let canMessage = true;
-
-function selectServer(num) {}
-function selectChannel(num) {}
 
 function getOldServerSettings() {
   visibleCheckbox.checked = visible;
@@ -340,11 +334,9 @@ function getChannelIDNames(serverid) {
     .then((res) =>
       res.json().then((data) => {
         updateChannelList(data.channels);
-        //TODO: loop through channels anad create init value in the map we had before
         data.channels.forEach((channel) => {
           if (lastMessageReceived.has(channel.channelid)) {
             console.log("Channels " + data.channels);
-            return;
           }
         });
       }),
@@ -352,7 +344,6 @@ function getChannelIDNames(serverid) {
     .catch(console.error);
 }
 window.onload = async () => {
-  //serverSettingsGui.showModal();
   getServerIDNames();
   getChannelIDNames(1);
   currentChatMessages = document.getElementById("channelMessages").children;

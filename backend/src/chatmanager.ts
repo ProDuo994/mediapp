@@ -4,7 +4,6 @@ import { Client, connect } from "ts-postgres";
 import bcrypt from "bcrypt";
 import { Group, Account, Message, ServerSettings } from "./types/types";
 import winston, { Logger } from "winston";
-import "express-session";
 declare module "express-session" {
   interface SessionData {
     user?: {
@@ -27,18 +26,11 @@ app.use(
 app.use(
   session({
     name: "session",
-    store: new (require("connect-pg-simple")(session))({
-      conString: "postgres://postgres:postgres@127.0.0.1:5432/mediapp",
-      createTableIfMissing: true,
-    }),
+    store: new (require("connect-pg-simple")(session))({ conString: "postgres://postgres:postgres@127.0.0.1:5432/mediapp", createTableIfMissing: true }),
     secret: "anyrandomtext",
     resave: false,
     saveUninitialized: true,
-    cookie: {
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-      httpOnly: true,
-      secure: false,
-    },
+    cookie: { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, secure: false },
   }),
 );
 
@@ -87,12 +79,7 @@ app.post("/signup", async (req: Request, res: Response): Promise<any> => {
   if (username == null || password == null) {
     res.status(400).send("Please add all arguments");
   }
-  let account: Account = {
-    username,
-    password,
-    userid: 2,
-    displayname: username,
-  };
+  let account: Account = { username, password, userid: 2, displayname: username };
   await addNewAccountToDatabase(account);
   return res.status(200).send(account);
 });
@@ -106,7 +93,7 @@ app.post("/login", async (req: Request, res: Response): Promise<any> => {
   }
   if (psw === acc.password) {
     console.log(usr + " logged in at " + new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString());
-    req.session.user = { id: acc.userid };
+    req.session.user = { username: acc.username, id: acc.userid };
     req.session.save();
     return res.status(200).send({ displayname: acc.displayname });
   }
@@ -119,11 +106,11 @@ app.post("/addFreind", async (req: Request, res: Response): Promise<any> => {
     return res.status(400).send("Please add all arguments");
   }
   const query = client.query<Account>(`SELECT * FROM public.users WHERE displayname = ` + friendName);
-  const freind: Account = query.first();
-  if (freind === undefined) {
-    return res.status(404).send("Could not find account");
-  }
-  return res.status(200).send(freind);
+  // const freind: Account = query.first();
+  // if (freind === undefined) {
+  //   return res.status(404).send("Could not find account");
+  // }
+  // return res.status(200).send(freind);
 });
 
 async function getServerIDNames(req: Request) {
@@ -187,12 +174,7 @@ app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
   if (isGroup) {
     return res.status(200).send("Group message received");
   }
-  let SQLMessage: Message = {
-    senderid: sender,
-    displayname: sender,
-    messagecontent: fullMessage.messagecontent,
-    timesent: fullMessage.timesent,
-  };
+  let SQLMessage: Message = { senderid: sender, displayname: sender, messagecontent: fullMessage.messagecontent, timesent: fullMessage.timesent };
   const result = client.query(`INSERT INTO messages (senderid, messagecontent, channelid, timesent) VALUES (${SQLMessage.senderid}, '${SQLMessage.messagecontent}', 1, '${SQLMessage.timesent}')`);
   return res.status(200);
 });
