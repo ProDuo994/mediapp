@@ -223,6 +223,7 @@ const createServerButton = document.getElementById("createServerButton");
 const channelList = document.getElementById("channelList");
 const burgerMenu = document.getElementById("burgerMenu");
 const burgerButton = document.getElementById("burgerMenuButton");
+const disbandServerButton = document.getElementById("disbandGroupBtn");
 let channelName = "Test Server";
 let channelDes = "Test Description";
 let visible = true;
@@ -234,6 +235,19 @@ function getOldServerSettings() {
   channelNameInput.value = channelName;
   channelDesInput.value = channelDes;
 }
+
+function disbandGroup(serverid) {
+  //Confirm action
+  // Send message to delete server from database
+  fetch(`${server}/disbandServer`, {
+    body: {
+      serverid,
+    },
+  });
+}
+disbandServerButton.addEventListener("click", (event) => {
+  disbandGroup(1);
+});
 
 function updateServerSettings() {}
 

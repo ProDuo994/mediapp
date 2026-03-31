@@ -93,8 +93,6 @@ app.post("/login", async (req: Request, res: Response): Promise<any> => {
   }
   if (psw === acc.password) {
     console.log(usr + " logged in at " + new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString());
-    req.session.user = { username: acc.username, id: acc.userid };
-    req.session.save();
     return res.status(200).send({ displayname: acc.displayname });
   }
   return res.status(401).send("Incorrect Username/Password");
@@ -114,7 +112,11 @@ app.post("/addFreind", async (req: Request, res: Response): Promise<any> => {
 });
 
 async function getServerIDNames(req: Request) {
-  let userid: string = req.session.user.id;
+  if (req.session.user == undefined) {
+    console.log("req.sesion.user = " + req.session.user);
+    return;
+  }
+  let userid: number = req.session.user.id;
   const serverId = [...(await client.query(`SELECT serverid FROM public.serversjoineduser WHERE userid=${userid}`))];
   const serverName = [...(await client.query(`SELECT servername FROM public.servers WHERE serverid=1`))];
   let servers = [];
@@ -125,7 +127,7 @@ async function getServerIDNames(req: Request) {
   return JSON.stringify(serverIdsAndNames);
 }
 app.get("/getServerIDNames", async (req: Request, res: Response) => {
-  res.send(await getServerIDNames(req));
+  res.send(await getServerIDNames(req.body));
 });
 
 app.post("/createChannel", async (req: Request, res: Response): Promise<any> => {
@@ -226,6 +228,12 @@ app.post("/createServer", async (req: Request, res: Response): Promise<any> => {
     logger.error(error);
     return res.status(500).send("Internal server error");
   }
+});
+
+app.post("/disbandServer", async (req: Request, res: Response): Promise<any> => {
+  const serverid = req.body.serverid;
+  await client.query(`DELETE FROM servers WHERE serverid=${serverid}`);
+  return res.status(200).send("Deleted group");
 });
 
 app.get("/getChatID", async (req: Request, res: Response): Promise<any> => {
