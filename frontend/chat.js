@@ -33,7 +33,6 @@ function getChannelMessageServer(id) {
 }
 
 function getServer(serverID) {
-  let returnedServerID, serverName, serverDes;
   fetch(
     `${server}/server${new URLSearchParams({
       serverID,
@@ -65,7 +64,7 @@ function sendMessage(sender, message, isGroup) {
         "Content-Type": "application/json",
       },
       credentials: "include",
-      body: JSON.stringify({ message, isGroup }),
+      body: JSON.stringify({ sender, message, isGroup }),
     })
       .then((res) => {
         if (res.status === 200) {
@@ -77,8 +76,11 @@ function sendMessage(sender, message, isGroup) {
         }
       })
       .catch((err) => {
-        reject(err);
-        console.error(err);
+        if (err && typeof err == String) {
+          console.error(err);
+          return null;
+        }
+        return null;
       });
   });
 }
@@ -237,8 +239,6 @@ function getOldServerSettings() {
 }
 
 function disbandGroup(serverid) {
-  //Confirm action
-  // Send message to delete server from database
   fetch(`${server}/disbandServer`, {
     body: {
       serverid,
@@ -266,12 +266,10 @@ newServerButton.addEventListener("click", (event) => {
   event.preventDefault();
   newServerDialog.showModal();
 });
-
 burgerButton.addEventListener("click", (event) => {
   event.preventDefault();
   burgerMenu.showModal();
 });
-
 createServerButton.addEventListener("click", (event) => {
   event.preventDefault();
   createChat(serverFormName.innerText, serverFormDes.innerText);
@@ -333,7 +331,12 @@ function getServerIDNames() {
         serversJoinedByUser = data.servers;
       }),
     )
-    .catch(console.error);
+    .catch((err) => {
+      if (err && typeof err == String) {
+        console.error(err);
+        return null;
+      }
+    });
 }
 
 function updateChannelList(channels) {}
@@ -355,7 +358,12 @@ function getChannelIDNames(serverid) {
         });
       }),
     )
-    .catch(console.error);
+    .catch((err) => {
+      if (err && typeof err == String) {
+        console.error(err);
+        return null;
+      }
+    });
 }
 window.onload = async () => {
   getServerIDNames();

@@ -67,21 +67,3 @@ window.onload = () => {
     login(document.getElementById("usrname").value, document.getElementById("pswrd").value);
   });
 };
-
-function enryptPassword(password) {
-  if (password != null) {
-    password = "$" + password + "$";
-    return password;
-  } else {
-    console.warn("Password not provided");
-  }
-}
-
-function decryptPassword(password) {
-  if (password != null) {
-    password = "$" + password + "$";
-    return password;
-  } else {
-    console.warn("Password not provided");
-  }
-}

@@ -15,14 +15,6 @@ declare module "express-session" {
 }
 const session = require("express-session");
 const app = express();
-app.use(express.json());
-app.set("trust proxy", 1);
-app.use(
-  cors({
-    origin: "http://127.0.0.1:5500",
-    credentials: true,
-  }),
-);
 app.use(
   session({
     name: "session",
@@ -31,6 +23,14 @@ app.use(
     resave: false,
     saveUninitialized: true,
     cookie: { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, secure: false },
+  }),
+);
+app.use(express.json());
+app.set("trust proxy", 1);
+app.use(
+  cors({
+    origin: "http://127.0.0.1:5500",
+    credentials: true,
   }),
 );
 
@@ -56,6 +56,7 @@ async function addNewAccountToDatabase(newAccount: Account) {
 }
 
 async function getUserFromID(id: number): Promise<Account | null> {
+  id = 1;
   try {
     const query = await client.query<Account>("SELECT * FROM public.users WHERE userid=" + id + ";");
     return [...query][0];
@@ -112,11 +113,11 @@ app.post("/addFreind", async (req: Request, res: Response): Promise<any> => {
 });
 
 async function getServerIDNames(req: Request) {
-  if (req.session.user == undefined) {
-    console.log("req.sesion.user = " + req.session.user);
+  if (req.session?.id == undefined) {
+    console.error("req.sesion.id = " + req.session?.id);
     return;
   }
-  let userid: number = req.session.user.id;
+  let userid: string = req.session.id;
   const serverId = [...(await client.query(`SELECT serverid FROM public.serversjoineduser WHERE userid=${userid}`))];
   const serverName = [...(await client.query(`SELECT servername FROM public.servers WHERE serverid=1`))];
   let servers = [];
@@ -148,8 +149,8 @@ function formatMessage(senderid: number, sender: string, messagecontent: string,
 app.post("/getChannelIDNames", async (req: Request, res: Response): Promise<any> => {
   console.log("Server ID: " + req.body.serverid);
   let serverid = 1;
-  let channelid = Number([...(await client.query("SELECT channelid FROM channels WHERE serverid=" + serverid))]);
-  let channelname = [...(await client.query("SELECT channelname FROM channels WHERE serverid=" + serverid))];
+  let channelid = Number([...(await client?.query(`SELECT channelid FROM channels WHERE serverid = ${serverid}`))]);
+  let channelname = [...(await client?.query("SELECT channelname FROM channels WHERE serverid=" + serverid))];
   console.log("Channel ID: " + channelid);
   console.log("Channel Name: " + channelname);
   return res.status(200).send({ channelid, channelname });
@@ -157,8 +158,8 @@ app.post("/getChannelIDNames", async (req: Request, res: Response): Promise<any>
 
 app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
   const { message, isGroup } = req.body;
-  const sender: number = req.session.user.id;
-  const account: Account | null = await getUserFromID(sender);
+  const sender: string = req.body.sender;
+  const account: Account | null = await getUserFromID(1);
   if (sender === undefined || message === undefined || account === undefined) {
     logger.error("All args not provided chatmanager:169");
     return res.status(400).send("All args not provided");
@@ -171,13 +172,15 @@ app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
     logger.error("Could not find the required args (username)/chatmanager:160");
     return res.status(404).send("Could not find database");
   }
-  const fullMessage: Message = formatMessage(account.userid, account.displayname, message, Date.now());
-  console.log(`${fullMessage.displayname}: ${fullMessage.messagecontent} @ ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`);
+  const fullMessage: Message = formatMessage(account.userid, sender, message, Date.now());
+  console.log(`${sender}: ${fullMessage.messagecontent} @ ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`);
   if (isGroup) {
     return res.status(200).send("Group message received");
   }
-  let SQLMessage: Message = { senderid: sender, displayname: sender, messagecontent: fullMessage.messagecontent, timesent: fullMessage.timesent };
-  const result = client.query(`INSERT INTO messages (senderid, messagecontent, channelid, timesent) VALUES (${SQLMessage.senderid}, '${SQLMessage.messagecontent}', 1, '${SQLMessage.timesent}')`);
+  console.log(sender);
+  console.log(message);
+  console.log(fullMessage.timesent);
+  const result = await client.query("INSERT INTO messages (senderid, messagecontent, channelid, timesent) VALUES (${sender}, '${message}', 1, '${fullMessage.timesent}')");
   return res.status(200);
 });
 
