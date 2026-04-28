@@ -8,7 +8,7 @@
     "dev": "cls && set NODE_ENV=dev && tsx watch src/chatmanager.ts"
   },
   "keywords": [],
-  "author": "",
+  "author": "ProDuo994",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",

@@ -182,6 +182,7 @@ function pollMessages(serverID) {
   )
     .then((res) => res.json())
     .then((res) => {
+      console.log(res);
       const server1 = res["SERVER 1"];
       const channel1Messages = server1["Channel 1"].messages;
       console.log(channel1Messages);
@@ -342,7 +343,6 @@ function getServerIDNames() {
 function updateChannelList(channels) {}
 
 function getChannelIDNames(serverid) {
-  console.log("Running function");
   fetch(`${server}/getChannelIDNames`, {
     method: "POST",
     credentials: "include",

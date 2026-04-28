@@ -177,11 +177,11 @@ app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
   if (isGroup) {
     return res.status(200).send("Group message received");
   }
-  console.log(sender);
-  console.log(message);
-  console.log(fullMessage.timesent);
-  const result = await client.query("INSERT INTO messages (senderid, messagecontent, channelid, timesent) VALUES (${sender}, '${message}', 1, '${fullMessage.timesent}')");
-  return res.status(200);
+  const result = await client.query(`INSERT INTO messages (senderid, messagecontent, channelid, timesent) VALUES (1, '${message}', 1, ${fullMessage.timesent})`);
+  if (result !== undefined) {
+    return res.status(200);
+  }
+  return res.status(500).send("Failed to send message");
 });
 
 async function updateSettings(serverSettings: ServerSettings, servername: string) {}
