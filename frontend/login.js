@@ -19,7 +19,6 @@ function login(username, password) {
     credentials: "include",
   })
     .then((res) => {
-      console.log("received response");
       if (res.ok) {
         return res.json().then((data) => {
           processLogin(data.displayname, 0);
@@ -45,17 +44,13 @@ async function isServerOnline() {
       "Content-Type": "application/json",
       "X-Content-Type-Options": "nosniff",
     },
-  })
-    .then((res) => {
-      if (res.status == 200) {
-        return true;
-      }
-    })
-    .catch(() => {
-      return false;
-    });
+  }).then((res) => {
+    if (res.status == 200) {
+      return true;
+    }
+  });
+  return false;
 }
-
 window.onload = () => {
   const loginForm = document.getElementById("loginForm");
   const loginButton = document.getElementById("loginBtn");

@@ -271,14 +271,6 @@ app.get("/getChatMessages", async (req: Request, res: any) => {
   }
   try {
     let request: Message[] = [...(await client.query<Message>("SELECT senderid, messagecontent, timesent FROM messages WHERE channelid=" + serverID))];
-    request.forEach((element) => {
-      if (element.senderid == undefined) {
-        return res.status(400).send("Invalid Arguments /getChatMessages");
-      }
-      element.senderid = element.senderid;
-      element.messagecontent = element.messagecontent.toString();
-      element.timesent = element.timesent;
-    });
     return res.status(200).send(request);
   } catch (error) {
     return res.status(200).send("No new messages");

@@ -9,7 +9,6 @@ const lastMessageReceived = new Map();
 let serversJoinedByUser = [1];
 let ServerName = "server";
 let messageHistory = [];
-let lastAmountOfMessages = messageHistory.length;
 
 function getChannelMessageServer(id) {
   if (!id) {
@@ -117,7 +116,7 @@ function getChatID(name) {
 
 function getMessageFromServer(serverID) {
   const getMessagePromise = new Promise((resolve, reject) => {
-    if (serverID == undefined) {
+    if (!serverID) {
       return reject("Must provide serverID");
     }
     fetch(
@@ -182,10 +181,8 @@ function pollMessages(serverID) {
   )
     .then((res) => res.json())
     .then((res) => {
+      const lastAmountOfMessages = 0;
       console.log(res);
-      const server1 = res["SERVER 1"];
-      const channel1Messages = server1["Channel 1"].messages;
-      console.log(channel1Messages);
       if (channel1Messages.length > lastAmountOfMessages) {
         for (const message of channel1Messages) {
           createAndAppend("p", messageViewBox, message.username + ": " + message.message);
@@ -300,7 +297,6 @@ channelSettingsClose.addEventListener("click", (event) => {
   event.preventDefault();
   channelSettingsGui.close();
 });
-
 messageBoxInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     const message = messageBoxInput.value;
