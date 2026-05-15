@@ -1,12 +1,3 @@
---
--- PostgreSQL database dump
---
-
--- Dumped from database version 17.4
--- Dumped by pg_dump version 17.5
-
--- Started on 2026-04-28 16:25:35
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -22,11 +13,6 @@ SET row_security = off;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
-
---
--- TOC entry 225 (class 1259 OID 32825)
--- Name: channels; Type: TABLE; Schema: public; Owner: postgres
---
 
 CREATE TABLE public.channels (
     channelid bigint NOT NULL,

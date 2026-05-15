@@ -2,21 +2,12 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import { Client, connect } from "ts-postgres";
 import bcrypt from "bcrypt";
-import { Group, Account, Message, ServerSettings } from "./types/types";
+import { Group, Account, Message, ServerSettings } from "./types/types.ts";
 import winston, { Logger } from "winston";
-declare module "express-session" {
-  interface SessionData {
-    user?: {
-      id: number;
-      username: string;
-    };
-    userId?: number;
-  }
-}
-const session = require("express-session");
+import { Session } from "express-session";
 const app = express();
 app.use(
-  session({
+  new Session({
     name: "session",
     store: new (require("connect-pg-simple")(session))({ conString: "postgres://postgres:postgres@127.0.0.1:5432/mediapp", createTableIfMissing: true }),
     secret: "anyrandomtext",
@@ -142,7 +133,7 @@ app.post("/createChannel", async (req: Request, res: Response): Promise<any> => 
   return res.status(200).send("Channel created");
 });
 
-function formatMessage(senderid: number, sender: string, messagecontent: string, timesent: number): Message {
+function formatMessage(senderid: number, sender: string, messagecontent: string, timesent: number) {
   return { sender, messagecontent, timesent };
 }
 
@@ -172,7 +163,7 @@ app.post("/sendmsg", async (req: Request, res: Response): Promise<any> => {
     logger.error("Could not find the required args (username)/chatmanager:160");
     return res.status(404).send("Could not find database");
   }
-  const fullMessage: Message = formatMessage(account.userid, sender, message, Date.now());
+  const fullMessage = formatMessage(account.userid, sender, message, Date.now());
   console.log(`${sender}: ${fullMessage.messagecontent} @ ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`);
   if (isGroup) {
     return res.status(200).send("Group message received");
