@@ -224,6 +224,7 @@ const channelList = document.getElementById("channelList");
 const burgerMenu = document.getElementById("burgerMenu");
 const burgerButton = document.getElementById("burgerMenuButton");
 const disbandServerButton = document.getElementById("disbandGroupBtn");
+const channelColourInput = document.getElementById("channelColour");
 let channelName = "Test Server";
 let channelDes = "Test Description";
 let visible = true;
@@ -250,14 +251,23 @@ disbandServerButton.addEventListener("click", (event) => {
 function updateServerSettings() {}
 
 function updateChannelSettings() {
+  console.log(channelColourInput.value);
   channelName = channelNameInput.value;
   channelDes = channelDesInput.value;
   visible = visibleCheckbox.checked;
   canMessage = messageCheckbox.checked;
+  channelColour = channelColourInput.value;
   updateSettingsEndpoint(channelName, channelDes, visible, canMessage);
   channelNameHeader.innerText = channelName;
   channel1Header.innerText = channelName;
   channelDesHeader.innerText = channelDes;
+  channel1Header.style.backgroundColor = channelColour;
+  if (channelColour.match(/^#([0-2][0-9a-f]){3}$/i)) {
+    channel1Header.style.color = "#ffffff";
+  } else {
+    channel1Header.style.color = "#000000";
+  }
+  console.log(channelColour);
 }
 
 newServerButton.addEventListener("click", (event) => {

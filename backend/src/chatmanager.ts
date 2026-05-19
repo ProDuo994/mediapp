@@ -6,16 +6,20 @@ import { Group, Account, Message, ServerSettings } from "./types/types.ts";
 import winston, { Logger } from "winston";
 import { Session } from "express-session";
 const app = express();
-app.use(
-  new Session({
-    name: "session",
-    store: new (require("connect-pg-simple")(session))({ conString: "postgres://postgres:postgres@127.0.0.1:5432/mediapp", createTableIfMissing: true }),
-    secret: "anyrandomtext",
-    resave: false,
-    saveUninitialized: true,
-    cookie: { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, secure: false },
-  }),
-);
+try {
+  app.use(
+    new Session({
+      name: "session",
+      secret: "anyrandomtext",
+      resave: false,
+      saveUninitialized: true,
+      cookie: { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, secure: false },
+    }),
+  );
+} catch {
+  console.error("Could not connect to sesssion, chatmanager.ts:11");
+}
+
 app.use(express.json());
 app.set("trust proxy", 1);
 app.use(

@@ -45,6 +45,8 @@
           <h5>Public?:</h5>
           <input type="checkbox" id="serverispublic" />
           <br />
+          <input type="color" id="serverColour" />
+          <br />
           <button id="createServerButton">Create</button>
         </form>
       </div>
@@ -55,6 +57,8 @@
           <h2>New Channel</h2>
           <h5>Channel Name:</h5>
           <input name="name" id="channelname" />
+          <h5>Channel Colour</h5>
+          <input type="color" id="channelColour" />
           <button type="submit">Add</button>
           <button type="button" class="closeChannelDialog" id="closeChannelDialog">Close</button>
         </form>
@@ -80,6 +84,9 @@
         <input type="checkbox" name="p" id="visibleCheckbox" />
         <h4>Can Message:</h4>
         <input type="checkbox" name="msg" id="messageCheckbox" />
+        <br />
+        <h5>Channel Colour</h5>
+        <input type="color" id="channelColour" />
         <br />
         <button type="submit" id="submitSettings">Confirm</button>
         <button id="channelSettingsCancel">Cancel</button>
