@@ -225,6 +225,7 @@ const burgerMenu = document.getElementById("burgerMenu");
 const burgerButton = document.getElementById("burgerMenuButton");
 const disbandServerButton = document.getElementById("disbandGroupBtn");
 const channelColourInput = document.getElementById("channelColour");
+const displayNameText = document.getElementById("displayNameText");
 let channelName = "Test Server";
 let channelDes = "Test Description";
 let visible = true;
@@ -269,6 +270,28 @@ function updateChannelSettings() {
   }
   console.log(channelColour);
 }
+function changeProfileSettings(displayName, profileDescription, userid) {
+  fetch(`${server}/changeProfileSettings`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Content-Type-Options": "nosniff",
+    },
+    body: {
+      displayName,
+      profileDescription,
+      userid,
+    },
+  })
+    .then({})
+    .catch((err) => {
+      if (err && typeof err == String) {
+        console.error(err);
+        return null;
+      }
+      return null;
+    });
+}
 
 newServerButton.addEventListener("click", (event) => {
   event.preventDefault();
@@ -307,6 +330,10 @@ channelSettingsClose.addEventListener("click", (event) => {
   event.preventDefault();
   channelSettingsGui.close();
 });
+document.getElementById("closeProfileButton").addEventListener("click", (event) => {
+  changeProfileSettings(document.getElementById("displayNameFeild").value, document.getElementById("profileDescFeild").value);
+  document.getElementById("changeProfileMenu").close();
+});
 messageBoxInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     const message = messageBoxInput.value;
@@ -315,6 +342,13 @@ messageBoxInput.addEventListener("keydown", (event) => {
     messageHistory.push(message);
     sendMessage(displayName, message, false);
   }
+});
+
+function openProfileEditMenu() {
+  document.getElementById("changeProfileMenu").showModal();
+}
+document.getElementById("yourProfile").addEventListener("click", () => {
+  openProfileEditMenu();
 });
 
 function addFriend(userID) {}
@@ -376,4 +410,5 @@ window.onload = async () => {
   getChannelIDNames(1);
   currentChatMessages = document.getElementById("channelMessages").children;
   const msgReceiveInteval = setInterval(() => pollMessages(1), 1000);
+  displayNameText.innerText = displayName;
 };

@@ -94,6 +94,12 @@ app.post("/login", async (req: Request, res: Response): Promise<any> => {
   return res.status(401).send("Incorrect Username/Password");
 });
 
+app.post("/changeProfileSettings", async (req: Request, res: Response): Promise<any> => {
+  let { displayName, profileDescription, userid } = req.body;
+  let request = await client.query(`UPDATE users SET displayname = ${displayName} WHERE userid = ` + userid);
+  res.status(200);
+});
+
 app.post("/addFreind", async (req: Request, res: Response): Promise<any> => {
   let { usr, friendName } = req.body;
   if (usr == null || friendName == null) {

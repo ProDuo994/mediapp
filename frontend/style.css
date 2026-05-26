@@ -331,6 +331,13 @@ dialog {
   border: 1px solid #ccc;
   margin-bottom: 10px;
 }
+
+.changeProfileMenu {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
 .burgerMenuForm {
   margin: auto;
   align-self: center;
@@ -365,6 +372,17 @@ dialog {
 
 .serverListContainer {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.yourProfile {
+  display: flex;
+  padding-left: 80%;
+  gap: 10px;
+}
+
+.yourProfile:hover {
+  cursor: pointer;
+  color: skyblue;
 }
 
 @media screen and (max-width: 600px) {
