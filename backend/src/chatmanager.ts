@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import { Group, Account, Message, ServerSettings } from "./types/types.ts";
 import winston, { Logger } from "winston";
 import { Session } from "express-session";
+import * as readline from "node:readline";
 const app = express();
 try {
   app.use(
@@ -277,15 +278,26 @@ app.get("/getChatMessages", async (req: Request, res: any) => {
     return res.status(200).send("No new messages");
   }
 });
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+async function cmd(args: string) {
+  return new Promise((resolve) => rl.question(args, resolve));
+}
 
 async function startServer() {
   try {
-    app.listen(PORT, () => {
+    app.listen(PORT, async () => {
       logger.log("info", `Mediapp listening on port ${PORT}.`);
+      const answer = await cmd("> ");
     });
     process.on("SIGTERM", async () => {
       logger.log("info", "Server Shutting Down without Error");
       await client.end();
+      rl.close();
+      process.exit();
     });
   } catch (error) {
     logger.error("Server failed:", error);

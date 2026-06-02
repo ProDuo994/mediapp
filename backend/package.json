@@ -1,14 +1,17 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "The backend of mediapp",
   "main": "chatmanager.ts",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "cls && set NODE_ENV=dev && tsx watch src/chatmanager.ts"
   },
-  "keywords": [],
+  "keywords": [
+    "backend",
+    "mediapp"
+  ],
   "author": "ProDuo994",
   "license": "ISC",
   "dependencies": {

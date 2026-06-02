@@ -95,6 +95,13 @@ body {
   width: 32px;
 }
 
+.serverAdd:hover {
+  background-color: purple;
+}
+button:hover {
+  background-color: purple;
+  cursor: pointer;
+}
 .memberList {
   background-color: rgb(63, 109, 110);
   height: 100%;
@@ -383,6 +390,12 @@ dialog {
 .yourProfile:hover {
   cursor: pointer;
   color: skyblue;
+}
+
+@media (min-width: 768px) {
+  body {
+    font-size: 16px;
+  }
 }
 
 @media screen and (max-width: 600px) {
