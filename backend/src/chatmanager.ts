@@ -2,11 +2,16 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import { Client, connect } from "ts-postgres";
 import bcrypt from "bcrypt";
+import { createServer } from "http";
+import { Server, Socket } from "socket.io";
 import { Group, Account, Message, ServerSettings } from "./types/types.ts";
 import winston, { Logger } from "winston";
 import { Session } from "express-session";
 import * as readline from "node:readline";
+import { isObject } from "node:util";
+
 const app = express();
+const server = createServer(app);
 try {
   app.use(
     new Session({
@@ -291,11 +296,17 @@ async function startServer() {
   try {
     app.listen(PORT, async () => {
       logger.log("info", `Mediapp listening on port ${PORT}.`);
-      const answer = await cmd("> ");
     });
+    server.listen(4000, () => console.log("Socket started on port 4000"));
+    server.on("connection", (socket: Socket) => {
+      console.log("a user connected");
+      socket.on("disconnect", () => console.log("user disconnected"));
+    });
+    const answer = await cmd("> ");
     process.on("SIGTERM", async () => {
       logger.log("info", "Server Shutting Down without Error");
       await client.end();
+      server.close();
       rl.close();
       process.exit();
     });

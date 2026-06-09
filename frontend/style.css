@@ -1,5 +1,13 @@
 @import url("https://fonts.googleapis.com/css2?family=Funnel+Sans:ital,wght@0,300..800;1,300..800&display=swap");
 
+@keyframes fadeMenuIn {
+  from {
+    background-color: rgb(255, 255, 255 / 0%);
+  }
+  to {
+    background-color: rgb(255, 255, 255 / 100%);
+  }
+}
 * {
   margin: 0;
   box-sizing: border-box;

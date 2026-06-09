@@ -21,6 +21,10 @@ export interface Message {
   timesent: number;
 }
 
+export interface ReceivedMessage extends Message {
+  timestamp: number;
+}
+
 export interface Account {
   userid: number;
   displayname: string;
